@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
+import ApprovalGate from '@/components/ApprovalGate';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
-export default function SnapsPage() {
+function SnapsInner() {
   const [snaps, setSnaps] = useState<any[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -142,5 +143,13 @@ export default function SnapsPage() {
         </div>
       ))}
     </main>
+  );
+}
+
+export default function SnapsPage() {
+  return (
+    <ApprovalGate>
+      <SnapsInner />
+    </ApprovalGate>
   );
 }

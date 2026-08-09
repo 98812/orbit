@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
+import ApprovalGate from '@/components/ApprovalGate';
 
-export default function ChatPage() {
+function ChatInner() {
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
@@ -101,5 +102,13 @@ export default function ChatPage() {
         <button type="submit" className="btn btn-primary">Send</button>
       </form>
     </main>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <ApprovalGate>
+      <ChatInner />
+    </ApprovalGate>
   );
 }
