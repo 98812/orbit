@@ -3,6 +3,7 @@ import './globals.css';
 import NotificationProvider from '@/components/NotificationProvider';
 import NavBar from '@/components/NavBar';
 import InstallPrompt from '@/components/InstallPrompt';
+import SwipeNav from '@/components/SwipeNav';
 
 export const metadata: Metadata = {
   title: 'Gen-Z — for revolution',
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <NotificationProvider>
           <NavBar />
-          {children}
+          <SwipeNav>{children}</SwipeNav>
           <InstallPrompt />
         </NotificationProvider>
       </body>
