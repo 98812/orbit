@@ -4,27 +4,34 @@ import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
 
-function getWebPush() {
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT || 'mailto:admin@example.com';
-
-  if (!publicKey || !privateKey) return null;
-  webpush.setVapidDetails(subject, publicKey, privateKey);
-  return webpush;
-}
-
 export async function POST(request: Request) {
   try {
-    const wp = getWebPush();
-    if (!wp) {
-      return NextResponse.json({ error: 'Push not configured' }, { status: 500 });
+    const missing: string[] = [];
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) missing.push('NEXT_PUBLIC_VAPID_PUBLIC_KEY');
+    if (!process.env.VAPID_PRIVATE_KEY) missing.push('VAPID_PRIVATE_KEY');
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missing.push('NEXT_PUBLIC_SUPABASE_URL');
+
+    if (missing.length) {
+      return NextResponse.json(
+        { error: 'Missing environment variables', missing },
+        { status: 500 }
+      );
     }
 
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (!serviceKey || !url) {
-      return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
+    const privateKey = process.env.VAPID_PRIVATE_KEY!;
+    const subject = process.env.VAPID_SUBJECT || 'mailto:admin@example.com';
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+
+    try {
+      webpush.setVapidDetails(subject, publicKey, privateKey);
+    } catch (err: any) {
+      return NextResponse.json(
+        { error: 'Invalid VAPID config', detail: err?.message || String(err) },
+        { status: 500 }
+      );
     }
 
     const body = await request.json();
@@ -43,7 +50,10 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Failed to load subscriptions:', error);
-      return NextResponse.json({ error: 'Lookup failed' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Lookup failed', detail: error.message },
+        { status: 500 }
+      );
     }
 
     const payload = JSON.stringify({
@@ -54,13 +64,14 @@ export async function POST(request: Request) {
     });
 
     const stale: string[] = [];
+    const failures: string[] = [];
 
     await Promise.all(
       (subs || [])
         .filter((s: any) => s.user_id !== senderId)
         .map(async (s: any) => {
           try {
-            await wp.sendNotification(
+            await webpush.sendNotification(
               {
                 endpoint: s.endpoint,
                 keys: { p256dh: s.p256dh, auth: s.auth },
@@ -72,6 +83,7 @@ export async function POST(request: Request) {
               stale.push(s.endpoint);
             } else {
               console.error('Push failed:', err?.statusCode, err?.body);
+              failures.push(`${err?.statusCode}: ${err?.body || err?.message}`);
             }
           }
         })
@@ -81,9 +93,16 @@ export async function POST(request: Request) {
       await admin.from('push_subscriptions').delete().in('endpoint', stale);
     }
 
-    return NextResponse.json({ sent: (subs || []).length - stale.length });
-  } catch (err) {
+    return NextResponse.json({
+      found: (subs || []).length,
+      stale: stale.length,
+      failures,
+    });
+  } catch (err: any) {
     console.error('Push route error:', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Server error', detail: err?.message || String(err) },
+      { status: 500 }
+    );
   }
 }
