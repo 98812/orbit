@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-const ORDER = ['/chat', '/snaps', '/members', '/profile'];
+const ORDER = ['/chat', '/snaps', '/messages', '/members', '/profile'];
 
 export default function SwipeNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -42,7 +42,7 @@ export default function SwipeNav({ children }: { children: React.ReactNode }) {
   function onTouchStart(e: React.TouchEvent) {
     // ignore swipes that begin inside a scrollable image viewer or input
     const target = e.target as HTMLElement;
-    if (target.closest('.lightbox') || target.closest('input') || target.closest('textarea')) {
+    if (target.closest('.lightbox') || target.closest('input') || target.closest('textarea') || target.closest('.chat-scroll')) {
       startX.current = null;
       return;
     }

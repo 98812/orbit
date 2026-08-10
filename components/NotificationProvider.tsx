@@ -3,15 +3,15 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import { createClient } from '@/lib/supabase';
 
-type Counts = { messages: number; snaps: number };
+type Counts = { messages: number; snaps: number; dms: number };
 
 const NotifContext = createContext<{
   counts: Counts;
-  clear: (kind: 'messages' | 'snaps') => void;
+  clear: (kind: 'messages' | 'snaps' | 'dms') => void;
   enableBrowserNotifs: () => void;
   permission: string;
 }>({
-  counts: { messages: 0, snaps: 0 },
+  counts: { messages: 0, snaps: 0, dms: 0 },
   clear: () => {},
   enableBrowserNotifs: () => {},
   permission: 'default',
@@ -33,7 +33,7 @@ function notify(title: string, body: string) {
 }
 
 export default function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const [counts, setCounts] = useState<Counts>({ messages: 0, snaps: 0 });
+  const [counts, setCounts] = useState<Counts>({ messages: 0, snaps: 0, dms: 0 });
   const [permission, setPermission] = useState('default');
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -47,6 +47,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
     const supabase = createClient();
     let msgChannel: any;
     let snapChannel: any;
+    let dmChannel: any;
 
     async function setup() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -73,6 +74,25 @@ export default function NotificationProvider({ children }: { children: React.Rea
         })
         .subscribe();
 
+      // initial unread DM count
+      const { count } = await supabase
+        .from('direct_messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('recipient_id', user.id)
+        .is('read_at', null);
+      if (count) setCounts((c) => ({ ...c, dms: count }));
+
+      dmChannel = supabase
+        .channel('notif-dms-' + suffix)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' }, (payload) => {
+          if (payload.new.recipient_id !== user.id) return;
+          setCounts((c) => ({ ...c, dms: c.dms + 1 }));
+          if (document.hidden || !location.pathname.startsWith('/messages')) {
+            notify('New message', payload.new.content?.slice(0, 80) || 'Someone messaged you');
+          }
+        })
+        .subscribe();
+
       snapChannel = supabase
         .channel('notif-snaps-' + suffix)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'snaps' }, (payload) => {
@@ -90,10 +110,11 @@ export default function NotificationProvider({ children }: { children: React.Rea
     return () => {
       if (msgChannel) supabase.removeChannel(msgChannel);
       if (snapChannel) supabase.removeChannel(snapChannel);
+      if (dmChannel) supabase.removeChannel(dmChannel);
     };
   }, []);
 
-  function clear(kind: 'messages' | 'snaps') {
+  function clear(kind: 'messages' | 'snaps' | 'dms') {
     setCounts((c) => ({ ...c, [kind]: 0 }));
   }
 

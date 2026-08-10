@@ -38,6 +38,12 @@ const ICONS: Record<string, React.ReactNode> = {
       <circle cx="12" cy="7" r="4" />
     </svg>
   ),
+  mail: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+      <path d="M22 6l-10 7L2 6" />
+    </svg>
+  ),
   admin: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -55,12 +61,13 @@ type NavLink = {
   href: string;
   label: string;
   icon: string;
-  badge?: 'messages' | 'snaps';
+  badge?: 'messages' | 'snaps' | 'dms';
 };
 
 const LINKS: NavLink[] = [
   { href: '/chat', label: 'Chat', icon: 'chat', badge: 'messages' },
   { href: '/snaps', label: 'Snaps', icon: 'snaps', badge: 'snaps' },
+  { href: '/messages', label: 'Messages', icon: 'mail', badge: 'dms' },
   { href: '/members', label: 'Members', icon: 'members' },
   { href: '/profile', label: 'Profile', icon: 'profile' },
 ];
@@ -94,6 +101,7 @@ export default function NavBar() {
   useEffect(() => {
     if (pathname?.startsWith('/chat')) clear('messages');
     if (pathname?.startsWith('/snaps')) clear('snaps');
+    if (pathname?.startsWith('/messages')) clear('dms');
   }, [pathname]);
 
   const isActive = (p: string) => pathname === p || pathname?.startsWith(p + '/');

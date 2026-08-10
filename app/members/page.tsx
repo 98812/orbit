@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
+import Link from 'next/link';
 
 function MembersInner() {
   const [people, setPeople] = useState<any[]>([]);
@@ -98,6 +99,10 @@ function MembersInner() {
                   <div style={{ fontSize: 15, lineHeight: 1.5 }}>{value}</div>
                 </div>
               ))}
+
+            <Link href={`/messages/${open.id}`} className="btn btn-primary" style={{ marginBottom: 18 }}>
+              ✉️ Message
+            </Link>
 
             {!open.bio && !open.goal && !open.mission && !open.qualification && (
               <p className="muted" style={{ fontSize: 14 }}>

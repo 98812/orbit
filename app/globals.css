@@ -1250,3 +1250,72 @@ a {
   .blob-grape { width: 320px; height: 320px; }
   .blob-lime { display: none; }
 }
+
+/* --- direct messages --- */
+.thread-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: var(--cloud);
+  border-radius: 14px;
+  transition: background 0.16s ease, transform 0.16s ease;
+}
+
+.thread-row:hover {
+  background: var(--ink-3);
+}
+
+.thread-row:active {
+  transform: scale(0.99);
+}
+
+.thread-row.card {
+  margin-bottom: 10px;
+}
+
+.thread-name {
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thread-preview {
+  font-size: 13px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dm-header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-bottom: 14px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(245, 243, 255, 0.08);
+}
+
+.dm-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  color: var(--cloud);
+  text-decoration: none;
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.dm-back:hover {
+  background: rgba(198, 255, 61, 0.18);
+}
