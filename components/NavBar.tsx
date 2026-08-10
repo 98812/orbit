@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNotifications } from './NotificationProvider';
 
 function Badge({ count }: { count: number }) {
@@ -10,7 +10,7 @@ function Badge({ count }: { count: number }) {
   return <span className="badge nav-badge">{count > 9 ? '9+' : count}</span>;
 }
 
-const ICONS: Record<string, JSX.Element> = {
+const ICONS: Record<string, React.ReactNode> = {
   chat: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -49,12 +49,19 @@ const ICONS: Record<string, JSX.Element> = {
   ),
 };
 
-const LINKS = [
+type NavLink = {
+  href: string;
+  label: string;
+  icon: string;
+  badge?: 'messages' | 'snaps';
+};
+
+const LINKS: NavLink[] = [
   { href: '/chat', label: 'Chat', icon: 'chat', badge: 'messages' },
   { href: '/snaps', label: 'Snaps', icon: 'snaps', badge: 'snaps' },
   { href: '/members', label: 'Members', icon: 'members' },
   { href: '/profile', label: 'Profile', icon: 'profile' },
-] as const;
+];
 
 export default function NavBar() {
   const { counts, clear, enableBrowserNotifs, permission } = useNotifications();
@@ -84,7 +91,7 @@ export default function NavBar() {
           >
             <span className="nav-icon">{ICONS[l.icon]}</span>
             <span className="nav-text">{l.label}</span>
-            {l.badge && <Badge count={counts[l.badge as 'messages' | 'snaps']} />}
+            {l.badge && <Badge count={counts[l.badge]} />}
           </Link>
         ))}
       </div>
