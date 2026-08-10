@@ -1,15 +1,269 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
+import Avatar from '@/components/Avatar';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
+function timeAgo(ts: string) {
+  if (!ts) return '';
+  const diff = Date.now() - new Date(ts).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(ts).toLocaleDateString([], { day: 'numeric', month: 'short' });
+}
+
+function SnapCard({
+  snap,
+  userId,
+  names,
+  avatars,
+  onReact,
+  onComment,
+  onOpen,
+}: {
+  snap: any;
+  userId: string | null;
+  names: Record<string, string>;
+  avatars: Record<string, string>;
+  onReact: (snapId: string, emoji: string) => void;
+  onComment: (snapId: string, text: string) => Promise<void>;
+  onOpen: (snap: any) => void;
+}) {
+  const [showComments, setShowComments] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [openReaction, setOpenReaction] = useState<string | null>(null);
+
+  const comments = snap.snap_comments || [];
+  const reactions = snap.reactions || [];
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!draft.trim()) return;
+    setSending(true);
+    await onComment(snap.id, draft);
+    setDraft('');
+    setSending(false);
+  }
+
+  const reactorsFor = (emoji: string) =>
+    reactions
+      .filter((r: any) => r.emoji === emoji)
+      .map((r: any) => (r.user_id === userId ? 'You' : names[r.user_id] || 'someone'));
+
+  return (
+    <div className="snap-card">
+      <button className="snap-img-btn" onClick={() => onOpen(snap)} aria-label="View full size">
+        <img
+          src={snap.image_url}
+          alt={`Snap from ${snap.profiles?.full_name || 'a friend'}`}
+          className="snap-thumb"
+        />
+        <span className="snap-expand">⤢</span>
+      </button>
+      <div className="snap-meta">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <Avatar src={snap.profiles?.avatar_url} name={snap.profiles?.full_name} size={32} />
+            <p className="snap-author" style={{ margin: 0 }}>{snap.profiles?.full_name || 'friend'}</p>
+          </div>
+          <span className="mono muted" style={{ fontSize: 11 }}>
+            {timeAgo(snap.created_at)}
+          </span>
+        </div>
+
+        <div className="reactions">
+          {EMOJIS.map((emoji) => {
+            const who = reactorsFor(emoji);
+            return (
+              <button
+                key={emoji}
+                onClick={() => onReact(snap.id, emoji)}
+                onMouseEnter={() => who.length && setOpenReaction(emoji)}
+                onMouseLeave={() => setOpenReaction(null)}
+                className="reaction"
+                style={{ position: 'relative' }}
+                title={who.length ? who.join(', ') : undefined}
+              >
+                {emoji}
+                {who.length > 0 && <span className="reaction-count">{who.length}</span>}
+                {openReaction === emoji && who.length > 0 && (
+                  <span className="reaction-tip">{who.join(', ')}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {reactions.length > 0 && (
+          <p className="mono muted" style={{ fontSize: 11, marginTop: 10, marginBottom: 0 }}>
+            {(() => {
+              const all = reactions.map((r: any) =>
+                r.user_id === userId ? 'You' : names[r.user_id] || 'someone'
+              );
+              const unique = Array.from(new Set(all));
+              if (unique.length === 1) return `${unique[0]} reacted`;
+              if (unique.length === 2) return `${unique[0]} and ${unique[1]} reacted`;
+              return `${unique[0]}, ${unique[1]} and ${unique.length - 2} more reacted`;
+            })()}
+          </p>
+        )}
+
+        <button
+          onClick={() => setShowComments((s) => !s)}
+          className="link-btn"
+          style={{ marginTop: 12 }}
+        >
+          💬 {comments.length > 0 ? `${comments.length} ${comments.length === 1 ? 'reply' : 'replies'}` : 'Reply'}
+        </button>
+
+        {showComments && (
+          <div style={{ marginTop: 12 }}>
+            {comments.map((c: any) => (
+              <div key={c.id} className="comment">
+                <Avatar src={avatars[c.user_id]} name={names[c.user_id]} size={22} />
+                <span className="comment-name">
+                  {c.user_id === userId ? 'You' : names[c.user_id] || 'friend'}
+                </span>
+                <span>{c.content}</span>
+                <span className="comment-time">{timeAgo(c.created_at)}</span>
+              </div>
+            ))}
+
+            <form onSubmit={submit} style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <input
+                className="input"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Write a reply…"
+                style={{ fontSize: 14, padding: '9px 12px' }}
+                autoComplete="off"
+              />
+              <button type="submit" className="btn btn-pink btn-sm" disabled={sending}>
+                {sending ? '…' : 'Send'}
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+function Lightbox({
+  snaps,
+  current,
+  names,
+  onClose,
+  onNavigate,
+}: {
+  snaps: any[];
+  current: any;
+  names: Record<string, string>;
+  onClose: () => void;
+  onNavigate: (snap: any) => void;
+}) {
+  const index = snaps.findIndex((s) => s.id === current.id);
+  const hasPrev = index > 0;
+  const hasNext = index < snaps.length - 1;
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft' && hasPrev) onNavigate(snaps[index - 1]);
+      if (e.key === 'ArrowRight' && hasNext) onNavigate(snaps[index + 1]);
+    }
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [index, hasPrev, hasNext]);
+
+  const touchStart = useRef<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      className="lightbox"
+      onClick={onClose}
+      onTouchStart={(e) => {
+        touchStart.current = e.touches[0].clientX;
+      }}
+      onTouchEnd={(e) => {
+        if (touchStart.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchStart.current;
+        if (dx > 60 && hasPrev) onNavigate(snaps[index - 1]);
+        if (dx < -60 && hasNext) onNavigate(snaps[index + 1]);
+        touchStart.current = null;
+      }}
+    >
+      <button className="lightbox-close" onClick={onClose} aria-label="Close">
+        ✕
+      </button>
+
+      {hasPrev && (
+        <button
+          className="lightbox-nav prev"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate(snaps[index - 1]);
+          }}
+          aria-label="Previous"
+        >
+          ‹
+        </button>
+      )}
+
+      <figure className="lightbox-figure" onClick={(e) => e.stopPropagation()}>
+        <img src={current.image_url} alt={`Snap from ${current.profiles?.full_name || 'a friend'}`} />
+        <figcaption>
+          <strong>{current.profiles?.full_name || 'friend'}</strong>
+          <span className="mono">{timeAgo(current.created_at)}</span>
+          <span className="mono lightbox-count">
+            {index + 1} / {snaps.length}
+          </span>
+        </figcaption>
+      </figure>
+
+      {hasNext && (
+        <button
+          className="lightbox-nav next"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate(snaps[index + 1]);
+          }}
+          aria-label="Next"
+        >
+          ›
+        </button>
+      )}
+    </div>,
+    document.body
+  );
+}
+
 function SnapsInner() {
   const [snaps, setSnaps] = useState<any[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [avatars, setAvatars] = useState<Record<string, string>>({});
   const [userId, setUserId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [viewer, setViewer] = useState<any>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -17,10 +271,22 @@ function SnapsInner() {
       const { data: { user } } = await supabase.auth.getUser();
       setUserId(user?.id ?? null);
 
+      const { data: profs } = await supabase.from('profiles').select('id, full_name, avatar_url');
+      const map: Record<string, string> = {};
+      const avs: Record<string, string> = {};
+      (profs || []).forEach((p: any) => {
+        map[p.id] = p.full_name || 'friend';
+        if (p.avatar_url) avs[p.id] = p.avatar_url;
+      });
+      setNames(map);
+      setAvatars(avs);
+
       const { data, error } = await supabase
         .from('snaps')
-        .select('*, profiles(full_name), reactions(emoji, user_id)')
+        .select('*, profiles(full_name, avatar_url), reactions(emoji, user_id), snap_comments(id, content, user_id, created_at)')
         .order('created_at', { ascending: false });
+
+      setLoading(false);
 
       if (error) {
         console.error('Failed to load snaps:', error);
@@ -52,6 +318,7 @@ function SnapsInner() {
       } catch (err) {
         console.error('HEIC conversion failed:', err);
         setUploading(false);
+        alert('That photo format could not be read. Try exporting it as a JPG first.');
         return;
       }
     }
@@ -69,7 +336,7 @@ function SnapsInner() {
     const { data, error } = await supabase
       .from('snaps')
       .insert({ user_id: userId, image_url: urlData.publicUrl })
-      .select('*, profiles(full_name), reactions(emoji, user_id)')
+      .select('*, profiles(full_name, avatar_url), reactions(emoji, user_id), snap_comments(id, content, user_id, created_at)')
       .single();
 
     setUploading(false);
@@ -85,7 +352,9 @@ function SnapsInner() {
 
   async function react(snapId: string, emoji: string) {
     if (!userId) return;
-    const { error } = await supabase.from('reactions').insert({ snap_id: snapId, user_id: userId, emoji });
+    const { error } = await supabase
+      .from('reactions')
+      .insert({ snap_id: snapId, user_id: userId, emoji });
     if (error) {
       console.error('Failed to react:', error);
       return;
@@ -97,12 +366,32 @@ function SnapsInner() {
     );
   }
 
+  async function addComment(snapId: string, content: string) {
+    if (!userId) return;
+    const { data, error } = await supabase
+      .from('snap_comments')
+      .insert({ snap_id: snapId, user_id: userId, content })
+      .select('id, content, user_id, created_at')
+      .single();
+
+    if (error) {
+      console.error('Failed to comment:', error);
+      return;
+    }
+
+    setSnaps((prev) =>
+      prev.map((s) =>
+        s.id === snapId ? { ...s, snap_comments: [...(s.snap_comments || []), data] } : s
+      )
+    );
+  }
+
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
+    <div className="page">
       <h1>Snaps</h1>
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
-        <label style={{ padding: '10px 16px', background: '#111', color: '#fff', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>
+      <div className="upload-row">
+        <label className="upload-btn" style={{ background: 'var(--lime)', color: 'var(--ink)' }}>
           📷 Take Photo
           <input
             type="file"
@@ -113,8 +402,11 @@ function SnapsInner() {
             style={{ display: 'none' }}
           />
         </label>
-        <label style={{ padding: '10px 16px', background: '#eee', color: '#111', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>
-          🖼️ Choose from Library
+        <label
+          className="upload-btn"
+          style={{ background: 'var(--ink-3)', color: 'var(--cloud)', border: '1px solid rgba(245,243,255,0.12)' }}
+        >
+          🖼️ From Library
           <input
             type="file"
             accept="image/*,.heic,.heif"
@@ -125,24 +417,50 @@ function SnapsInner() {
         </label>
       </div>
 
-      {uploading && <p>Uploading…</p>}
-      {snaps.length === 0 && !uploading && <p style={{ color: '#888' }}>No snaps yet — upload one.</p>}
-      {snaps.map((snap) => (
-        <div key={snap.id} style={{ marginBottom: 24, border: '1px solid #ddd', borderRadius: 12, overflow: 'hidden' }}>
-          <img src={snap.image_url} alt={`Snap from ${snap.profiles?.full_name || 'a friend'}`} style={{ width: '100%', display: 'block' }} />
-          <div style={{ padding: 12 }}>
-            <p style={{ margin: '0 0 8px' }}>{snap.profiles?.full_name || 'friend'}</p>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {EMOJIS.map((emoji) => (
-                <button key={emoji} onClick={() => react(snap.id, emoji)} style={{ fontSize: 18 }}>
-                  {emoji} {(snap.reactions || []).filter((r: any) => r.emoji === emoji).length || ''}
-                </button>
-              ))}
-            </div>
-          </div>
+      {uploading && (
+        <div className="empty">
+          <div className="empty-icon">⏫</div>
+          <p>Uploading…</p>
         </div>
+      )}
+
+      {loading && !uploading && (
+        <div className="empty">
+          <div className="empty-icon">📸</div>
+          <p>Loading Snaps…</p>
+        </div>
+      )}
+
+      {!loading && !uploading && snaps.length === 0 && (
+        <div className="empty">
+          <div className="empty-icon">📭</div>
+          <p>No Snaps yet — post the first one.</p>
+        </div>
+      )}
+
+      {viewer && (
+        <Lightbox
+          snaps={snaps}
+          current={viewer}
+          names={names}
+          onClose={() => setViewer(null)}
+          onNavigate={setViewer}
+        />
+      )}
+
+      {snaps.map((snap) => (
+        <SnapCard
+          key={snap.id}
+          snap={snap}
+          userId={userId}
+          names={names}
+          avatars={avatars}
+          onReact={react}
+          onComment={addComment}
+          onOpen={setViewer}
+        />
       ))}
-    </main>
+    </div>
   );
 }
 

@@ -43,15 +43,25 @@ export default function AdminPage() {
   }
 
   if (isAdmin === null) {
-    return <main style={{ padding: 40, fontFamily: 'sans-serif' }}><p>Loading…</p></main>;
+    return (
+      <div className="page">
+        <div className="empty">
+          <div className="empty-icon">🛠️</div>
+          <p>Loading…</p>
+        </div>
+      </div>
+    );
   }
 
   if (!isAdmin) {
     return (
-      <main style={{ padding: 40, fontFamily: 'sans-serif', textAlign: 'center' }}>
-        <h2>Not authorised</h2>
-        <p style={{ color: '#666' }}>Only the group admin can see this page.</p>
-      </main>
+      <div className="page">
+        <div className="empty">
+          <div className="empty-icon">⛔</div>
+          <h2 style={{ marginBottom: 8 }}>Not authorised</h2>
+          <p className="muted">Only the group admin can see this page.</p>
+        </div>
+      </div>
     );
   }
 
@@ -59,67 +69,81 @@ export default function AdminPage() {
   const approved = people.filter((p) => p.approved);
 
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: 24, fontFamily: 'sans-serif' }}>
+    <div className="page">
+      <p className="eyebrow">who gets in</p>
       <h1>Manage members</h1>
 
-      <h2 style={{ fontSize: 18, marginTop: 28 }}>Waiting for approval ({pending.length})</h2>
-      {pending.length === 0 && <p style={{ color: '#888' }}>Nobody waiting right now.</p>}
+      <h2 style={{ marginTop: 32, marginBottom: 14 }}>
+        Waiting for approval{' '}
+        <span style={{ color: pending.length ? 'var(--pink)' : 'var(--cloud-dim)' }}>
+          ({pending.length})
+        </span>
+      </h2>
+
+      {pending.length === 0 && <p className="muted">Nobody waiting right now.</p>}
+
       {pending.map((p) => (
         <div
           key={p.id}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 12,
-            padding: '12px 14px',
-            border: '1px solid #ddd',
-            borderRadius: 10,
-            marginBottom: 10,
-          }}
+          className="card pop"
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
         >
           <div>
-            <div style={{ fontWeight: 600 }}>{p.full_name || 'No name'}</div>
-            <div style={{ fontSize: 13, color: '#666' }}>{p.email}</div>
+            <div style={{ fontWeight: 700 }}>{p.full_name || 'No name'}</div>
+            <div className="mono muted" style={{ fontSize: 12, marginTop: 3 }}>
+              {p.email}
+            </div>
           </div>
-          <button
-            onClick={() => setApproval(p.id, true)}
-            style={{ padding: '8px 16px', background: '#111', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}
-          >
+          <button onClick={() => setApproval(p.id, true)} className="btn btn-primary btn-sm">
             Approve
           </button>
         </div>
       ))}
 
-      <h2 style={{ fontSize: 18, marginTop: 32 }}>Approved members ({approved.length})</h2>
+      <h2 style={{ marginTop: 36, marginBottom: 14 }}>
+        Approved members <span className="muted">({approved.length})</span>
+      </h2>
+
       {approved.map((p) => (
         <div
           key={p.id}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 12,
-            padding: '12px 14px',
-            border: '1px solid #eee',
-            borderRadius: 10,
-            marginBottom: 10,
-          }}
+          className="card"
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
         >
           <div>
-            <div style={{ fontWeight: 600 }}>{p.full_name || 'No name'}</div>
-            <div style={{ fontSize: 13, color: '#666' }}>{p.email}</div>
+            <div style={{ fontWeight: 700 }}>
+              {p.full_name || 'No name'}
+              {p.email === ADMIN_EMAIL && (
+                <span
+                  className="mono"
+                  style={{
+                    marginLeft: 8,
+                    fontSize: 10,
+                    padding: '2px 7px',
+                    borderRadius: 999,
+                    background: 'rgba(198,255,61,0.14)',
+                    color: 'var(--lime)',
+                  }}
+                >
+                  ADMIN
+                </span>
+              )}
+            </div>
+            <div className="mono muted" style={{ fontSize: 12, marginTop: 3 }}>
+              {p.email}
+            </div>
           </div>
           {p.email !== ADMIN_EMAIL && (
             <button
               onClick={() => setApproval(p.id, false)}
-              style={{ padding: '8px 16px', background: '#fff', color: '#c00', border: '1px solid #c00', borderRadius: 8, cursor: 'pointer' }}
+              className="btn btn-sm"
+              style={{ background: 'transparent', color: '#FF6B6B', border: '1.5px solid rgba(255,107,107,0.4)' }}
             >
               Remove
             </button>
           )}
         </div>
       ))}
-    </main>
+    </div>
   );
 }
