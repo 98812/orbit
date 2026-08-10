@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
+import { sendPush } from '@/lib/push';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
@@ -348,6 +349,18 @@ function SnapsInner() {
 
     setSnaps((prev) => [data, ...prev]);
     e.target.value = '';
+
+    const others = Object.keys(names).filter((id) => id !== userId);
+    if (others.length) {
+      sendPush({
+        recipientIds: others,
+        title: 'New Snap',
+        message: (data.profiles?.full_name || 'Someone') + ' just posted a Snap',
+        url: '/snaps',
+        tag: 'snap',
+        senderId: userId || undefined,
+      });
+    }
   }
 
   async function react(snapId: string, emoji: string) {

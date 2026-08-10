@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
+import { sendPush } from '@/lib/push';
 
 function formatTime(ts: string) {
   if (!ts) return '';
@@ -121,6 +122,15 @@ function ThreadInner() {
     setMessages((prev) => {
       if (prev.some((m) => m.id === data.id)) return prev;
       return [...prev, data];
+    });
+
+    sendPush({
+      recipientIds: [otherId],
+      title: 'New message',
+      message: content.slice(0, 90),
+      url: `/messages/${me}`,
+      tag: 'dm-' + me,
+      senderId: me,
     });
   }
 

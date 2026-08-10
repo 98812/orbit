@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
+import Avatar from '@/components/Avatar';
+import { sendPush } from '@/lib/push';
 
 function formatTime(ts: string) {
   if (!ts) return '';
@@ -19,6 +21,7 @@ function formatTime(ts: string) {
 
 function ChatInner() {
   const [messages, setMessages] = useState<any[]>([]);
+  const [people, setPeople] = useState<Record<string, any>>({});
   const [text, setText] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,9 +36,16 @@ function ChatInner() {
       const { data: { user } } = await supabase.auth.getUser();
       setUserId(user?.id ?? null);
 
+      const { data: profs } = await supabase.from('profiles').select('id, full_name, avatar_url');
+      const map: Record<string, any> = {};
+      (profs || []).forEach((p: any) => {
+        map[p.id] = p;
+      });
+      setPeople(map);
+
       const { data, error } = await supabase
         .from('messages')
-        .select('*, profiles(full_name)')
+        .select('*, profiles(full_name, avatar_url)')
         .order('created_at', { ascending: true })
         .limit(100);
 
@@ -79,7 +89,7 @@ function ChatInner() {
     const { data, error } = await supabase
       .from('messages')
       .insert({ user_id: userId, content })
-      .select('*, profiles(full_name)')
+      .select('*, profiles(full_name, avatar_url)')
       .single();
 
     if (error) {
@@ -91,6 +101,18 @@ function ChatInner() {
       if (prev.some((m) => m.id === data.id)) return prev;
       return [...prev, data];
     });
+
+    const others = Object.keys(people).filter((id) => id !== userId);
+    if (others.length) {
+      sendPush({
+        recipientIds: others,
+        title: (data.profiles?.full_name || 'Someone') + ' in the group chat',
+        message: content.slice(0, 90),
+        url: '/chat',
+        tag: 'chat',
+        senderId: userId,
+      });
+    }
   }
 
   return (
@@ -116,20 +138,23 @@ function ChatInner() {
           const mine = m.user_id === userId;
           const prev = messages[i - 1];
           const showName = !prev || prev.user_id !== m.user_id;
+          const person = m.profiles || people[m.user_id] || {};
 
           return (
             <div key={m.id} className={`msg-row ${mine ? 'mine' : ''}`}>
+              {!mine && (
+                <div style={{ marginRight: 9, alignSelf: 'flex-end', visibility: showName ? 'visible' : 'hidden' }}>
+                  <Avatar src={person.avatar_url} name={person.full_name} size={30} />
+                </div>
+              )}
               <div>
                 {showName && (
                   <div className="msg-name" style={{ textAlign: mine ? 'right' : 'left' }}>
-                    {mine ? 'You' : m.profiles?.full_name || 'friend'}
+                    {mine ? 'You' : person.full_name || 'friend'}
                   </div>
                 )}
                 <div className="bubble">{m.content}</div>
-                <div
-                  className="msg-time"
-                  style={{ textAlign: mine ? 'right' : 'left' }}
-                >
+                <div className="msg-time" style={{ textAlign: mine ? 'right' : 'left' }}>
                   {formatTime(m.created_at)}
                 </div>
               </div>

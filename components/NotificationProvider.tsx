@@ -2,6 +2,7 @@
 
 import { useEffect, useState, createContext, useContext } from 'react';
 import { createClient } from '@/lib/supabase';
+import { subscribeToPush, registerServiceWorker, pushSupported, isIos, isStandalone } from '@/lib/push';
 
 type Counts = { messages: number; snaps: number; dms: number };
 
@@ -38,8 +39,13 @@ export default function NotificationProvider({ children }: { children: React.Rea
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setPermission(Notification.permission);
+    if (typeof window === 'undefined') return;
+    if ('Notification' in window) setPermission(Notification.permission);
+
+    registerServiceWorker();
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      subscribeToPush().catch(() => {});
     }
   }, []);
 
@@ -118,17 +124,32 @@ export default function NotificationProvider({ children }: { children: React.Rea
     setCounts((c) => ({ ...c, [kind]: 0 }));
   }
 
-  function enableBrowserNotifs() {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      alert('Your browser does not support notifications.');
+  async function enableBrowserNotifs() {
+    if (!pushSupported()) {
+      alert('This browser does not support notifications.');
       return;
     }
-    Notification.requestPermission().then((p) => {
-      setPermission(p);
-      if (p === 'granted') {
-        notify('Notifications on', "You'll get alerts for new messages and Snaps.");
-      }
-    });
+
+    if (isIos() && !isStandalone()) {
+      alert(
+        'On iPhone, first add Gen-Z to your Home Screen (Share \u2192 Add to Home Screen), then open it from there and turn on alerts.'
+      );
+      return;
+    }
+
+    const res = await subscribeToPush();
+
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setPermission(Notification.permission);
+    }
+
+    if (res.ok) {
+      notify('Notifications on', "You'll get alerts even when the app is closed.");
+    } else if (res.reason === 'denied') {
+      alert('Notifications were blocked. You can re-enable them in your browser settings.');
+    } else if (res.reason === 'ios-needs-install') {
+      alert('Add Gen-Z to your Home Screen first, then open it from there.');
+    }
   }
 
   return (
