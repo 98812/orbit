@@ -1,11 +1,32 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import NotificationProvider from '@/components/NotificationProvider';
 import NavBar from '@/components/NavBar';
+import InstallPrompt from '@/components/InstallPrompt';
 
 export const metadata: Metadata = {
   title: 'Gen-Z — for revolution',
   description: 'A private space for your friend group: profiles, group chat, and Snaps with reactions.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Gen-Z',
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#14121F',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NotificationProvider>
           <NavBar />
           {children}
+          <InstallPrompt />
         </NotificationProvider>
       </body>
     </html>
