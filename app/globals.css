@@ -133,15 +133,31 @@ a {
   color: var(--lime);
 }
 
+.nav-links {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.nav-right {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .nav-link {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   text-decoration: none;
   color: var(--cloud-dim);
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 500;
-  padding: 7px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
-  transition: color 0.18s ease, background 0.18s ease;
+  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
 }
 
 .nav-link:hover {
@@ -149,10 +165,93 @@ a {
   background: rgba(245, 243, 255, 0.06);
 }
 
+.nav-link:active {
+  transform: scale(0.95);
+}
+
 .nav-link.active {
   color: var(--ink);
   background: var(--lime);
   font-weight: 700;
+}
+
+.nav-icon {
+  display: inline-flex;
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+
+.nav-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--pink);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.icon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 46, 147, 0.35);
+}
+
+.nav-badge {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  margin-left: 0;
+  min-width: 16px;
+  height: 16px;
+  font-size: 10px;
+}
+
+/* phone: icons only, spread evenly */
+@media (max-width: 720px) {
+  .nav {
+    gap: 2px;
+    padding: 10px 12px;
+  }
+  .nav-logo {
+    font-size: 18px;
+    margin-right: 4px;
+  }
+  .nav-text {
+    display: none;
+  }
+  .nav-link {
+    padding: 9px 12px;
+  }
+  .nav-links {
+    gap: 2px;
+  }
+  .nav-badge {
+    top: 0;
+    right: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .nav-logo {
+    font-size: 16px;
+  }
+  .nav-link {
+    padding: 8px 9px;
+  }
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .badge {

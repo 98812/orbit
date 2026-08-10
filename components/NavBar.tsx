@@ -7,8 +7,54 @@ import { useNotifications } from './NotificationProvider';
 
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null;
-  return <span className="badge">{count > 9 ? '9+' : count}</span>;
+  return <span className="badge nav-badge">{count > 9 ? '9+' : count}</span>;
 }
+
+const ICONS: Record<string, JSX.Element> = {
+  chat: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+  ),
+  snaps: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  ),
+  members: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  profile: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
+  admin: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  ),
+  bell: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  ),
+};
+
+const LINKS = [
+  { href: '/chat', label: 'Chat', icon: 'chat', badge: 'messages' },
+  { href: '/snaps', label: 'Snaps', icon: 'snaps', badge: 'snaps' },
+  { href: '/members', label: 'Members', icon: 'members' },
+  { href: '/profile', label: 'Profile', icon: 'profile' },
+] as const;
 
 export default function NavBar() {
   const { counts, clear, enableBrowserNotifs, permission } = useNotifications();
@@ -26,29 +72,42 @@ export default function NavBar() {
       <Link href="/" className="nav-logo">
         Gen-Z<span>.</span>
       </Link>
-      <Link href="/chat" className={`nav-link ${isActive('/chat') ? 'active' : ''}`}>
-        Chat
-        <Badge count={counts.messages} />
-      </Link>
-      <Link href="/snaps" className={`nav-link ${isActive('/snaps') ? 'active' : ''}`}>
-        Snaps
-        <Badge count={counts.snaps} />
-      </Link>
-      <Link href="/members" className={`nav-link ${isActive('/members') ? 'active' : ''}`}>
-        Members
-      </Link>
-      <Link href="/profile" className={`nav-link ${isActive('/profile') ? 'active' : ''}`}>
-        Profile
-      </Link>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div className="nav-links">
+        {LINKS.map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            className={`nav-link ${isActive(l.href) ? 'active' : ''}`}
+            aria-label={l.label}
+            title={l.label}
+          >
+            <span className="nav-icon">{ICONS[l.icon]}</span>
+            <span className="nav-text">{l.label}</span>
+            {l.badge && <Badge count={counts[l.badge as 'messages' | 'snaps']} />}
+          </Link>
+        ))}
+      </div>
+
+      <div className="nav-right">
         {permission !== 'granted' && (
-          <button onClick={enableBrowserNotifs} className="btn btn-pink btn-sm">
-            🔔 Alerts
+          <button
+            onClick={enableBrowserNotifs}
+            className="icon-btn"
+            aria-label="Turn on alerts"
+            title="Turn on alerts"
+          >
+            <span className="nav-icon">{ICONS.bell}</span>
           </button>
         )}
-        <Link href="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`} style={{ fontSize: 14 }}>
-          Admin
+        <Link
+          href="/admin"
+          className={`nav-link ${isActive('/admin') ? 'active' : ''}`}
+          aria-label="Admin"
+          title="Admin"
+        >
+          <span className="nav-icon">{ICONS.admin}</span>
+          <span className="nav-text">Admin</span>
         </Link>
       </div>
     </nav>
