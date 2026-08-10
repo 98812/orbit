@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase';
+import Avatar from './Avatar';
 import { useNotifications } from './NotificationProvider';
 
 function Badge({ count }: { count: number }) {
@@ -66,6 +68,28 @@ const LINKS: NavLink[] = [
 export default function NavBar() {
   const { counts, clear, enableBrowserNotifs, permission } = useNotifications();
   const pathname = usePathname();
+  const [me, setMe] = useState<{ avatar_url?: string; full_name?: string } | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    async function loadMe() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url, full_name')
+        .eq('id', user.id)
+        .single();
+      if (data) setMe(data);
+    }
+    loadMe();
+
+    function onAvatarUpdate(e: any) {
+      setMe((prev) => (prev ? { ...prev, avatar_url: e.detail } : prev));
+    }
+    window.addEventListener('genz-avatar-updated', onAvatarUpdate);
+    return () => window.removeEventListener('genz-avatar-updated', onAvatarUpdate);
+  }, []);
 
   useEffect(() => {
     if (pathname?.startsWith('/chat')) clear('messages');
@@ -89,7 +113,13 @@ export default function NavBar() {
             aria-label={l.label}
             title={l.label}
           >
-            <span className="nav-icon">{ICONS[l.icon]}</span>
+            <span className="nav-icon">
+              {l.href === '/profile' && me ? (
+                <Avatar src={me.avatar_url} name={me.full_name} size={21} />
+              ) : (
+                ICONS[l.icon]
+              )}
+            </span>
             <span className="nav-text">{l.label}</span>
             {l.badge && <Badge count={counts[l.badge]} />}
           </Link>

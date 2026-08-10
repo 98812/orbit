@@ -1040,3 +1040,43 @@ a {
     display: flex;
   }
 }
+
+/* --- avatar editor --- */
+.avatar-editor {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  margin-bottom: 26px;
+  background: var(--ink-2);
+  border: 1px solid rgba(245, 243, 255, 0.08);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+
+.avatar-editor-pic {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-uploading {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(20, 18, 31, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lime);
+  font-size: 22px;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+/* nav avatar sits flush inside the icon slot */
+.nav-link .avatar {
+  border-width: 1px;
+}
+
+.nav-link.active .avatar {
+  border-color: rgba(20, 18, 31, 0.35);
+}

@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
+import Avatar from '@/components/Avatar';
 
 const FIELDS = [
   ['full_name', 'Name', 'What everyone calls you'],
@@ -19,6 +20,8 @@ function ProfileInner() {
   const [profile, setProfile] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -31,13 +34,63 @@ function ProfileInner() {
     load();
   }, []);
 
+  async function changePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    let file = e.target.files?.[0];
+    if (!file || !profile) return;
+    setUploadingPhoto(true);
+
+    const isHeic =
+      file.type === 'image/heic' ||
+      file.type === 'image/heif' ||
+      file.name.toLowerCase().endsWith('.heic') ||
+      file.name.toLowerCase().endsWith('.heif');
+
+    if (isHeic) {
+      try {
+        const heic2any = (await import('heic2any')).default;
+        const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+        const blob = Array.isArray(converted) ? converted[0] : converted;
+        file = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+      } catch (err) {
+        console.error('HEIC conversion failed:', err);
+        setUploadingPhoto(false);
+        alert('That photo format could not be read. Try a JPG or PNG.');
+        return;
+      }
+    }
+
+    const path = `avatars/${profile.id}-${Date.now()}-${file.name}`;
+    const { error: upErr } = await supabase.storage.from('snaps').upload(path, file, { upsert: true });
+    if (upErr) {
+      console.error('Avatar upload failed:', upErr);
+      setUploadingPhoto(false);
+      alert('Could not upload that photo.');
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('snaps').getPublicUrl(path);
+    const newUrl = urlData.publicUrl;
+
+    const { error } = await supabase.from('profiles').update({ avatar_url: newUrl }).eq('id', profile.id);
+    setUploadingPhoto(false);
+
+    if (error) {
+      console.error('Failed to save avatar:', error);
+      return;
+    }
+
+    setProfile({ ...profile, avatar_url: newUrl });
+    window.dispatchEvent(new CustomEvent('genz-avatar-updated', { detail: newUrl }));
+    if (fileRef.current) fileRef.current.value = '';
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!profile) return;
     setSaving(true);
     setSaved(false);
 
-    const { id, email, approved, created_at, avatar_url, ...updates } = profile;
+    const { id, email, approved, created_at, ...updates } = profile;
     const { error } = await supabase.from('profiles').update(updates).eq('id', id);
 
     setSaving(false);
@@ -64,6 +117,33 @@ function ProfileInner() {
     <div className="page">
       <p className="eyebrow">your corner of the group</p>
       <h1>Your profile</h1>
+
+      <div className="avatar-editor">
+        <div className="avatar-editor-pic">
+          <Avatar src={profile.avatar_url} name={profile.full_name} size={84} />
+          {uploadingPhoto && <div className="avatar-uploading">…</div>}
+        </div>
+        <div>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploadingPhoto}
+          >
+            {uploadingPhoto ? 'Uploading…' : profile.avatar_url ? 'Change photo' : 'Add photo'}
+          </button>
+          <p className="muted" style={{ fontSize: 12.5, marginTop: 8, marginBottom: 0 }}>
+            Pick one from your gallery — everyone in the group will see it.
+          </p>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*,.heic,.heif"
+            onChange={changePhoto}
+            style={{ display: 'none' }}
+          />
+        </div>
+      </div>
 
       <form onSubmit={save}>
         {FIELDS.map(([key, label, hint]) => (
