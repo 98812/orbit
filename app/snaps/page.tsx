@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import CameraCapture from '@/components/CameraCapture';
+import CaptionPrompt from '@/components/CaptionPrompt';
 import { sendPush } from '@/lib/push';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
@@ -94,6 +95,8 @@ function SnapCard({
             {timeAgo(snap.created_at)}
           </span>
         </div>
+
+        {snap.caption && <p className="snap-caption">{snap.caption}</p>}
 
         <div className="reactions">
           {EMOJIS.map((emoji) => {
@@ -246,6 +249,7 @@ function Lightbox({
       <figure className="lightbox-figure" onClick={(e) => e.stopPropagation()}>
         <img src={current.image_url} alt={`Snap from ${current.profiles?.full_name || 'a friend'}`} />
         <figcaption>
+          {current.caption && <span className="lightbox-caption">{current.caption}</span>}
           <strong>{current.profiles?.full_name || 'friend'}</strong>
           <span className="mono">{timeAgo(current.created_at)}</span>
           <span className="mono lightbox-count">
@@ -280,6 +284,7 @@ function SnapsInner() {
   const [loading, setLoading] = useState(true);
   const [viewer, setViewer] = useState<any>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [pending, setPending] = useState<{ file: File; kind: 'image' | 'video' } | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -315,7 +320,8 @@ function SnapsInner() {
 
   async function uploadSnap(
     input: File | React.ChangeEvent<HTMLInputElement>,
-    kind: 'image' | 'video' = 'image'
+    kind: 'image' | 'video' = 'image',
+    caption = ''
   ) {
     let file: File | undefined =
       input instanceof File ? input : input.target.files?.[0];
@@ -358,7 +364,12 @@ function SnapsInner() {
 
     const { data, error } = await supabase
       .from('snaps')
-      .insert({ user_id: userId, image_url: urlData.publicUrl, media_type: kind })
+      .insert({
+        user_id: userId,
+        image_url: urlData.publicUrl,
+        media_type: kind,
+        caption: caption || null,
+      })
       .select('*, profiles(full_name, avatar_url), reactions(emoji, user_id), snap_comments(id, content, user_id, created_at)')
       .single();
 
@@ -377,9 +388,10 @@ function SnapsInner() {
       sendPush({
         recipientIds: others,
         title: 'New Snap',
-        message:
-          (data.profiles?.full_name || 'Someone') +
-          (kind === 'video' ? ' just posted a clip' : ' just posted a Snap'),
+        message: caption
+          ? (data.profiles?.full_name || 'Someone') + ': ' + caption.slice(0, 70)
+          : (data.profiles?.full_name || 'Someone') +
+            (kind === 'video' ? ' just posted a clip' : ' just posted a Snap'),
         url: '/snaps',
         tag: 'snap',
         senderId: userId || undefined,
@@ -461,7 +473,20 @@ function SnapsInner() {
           onClose={() => setCameraOpen(false)}
           onCapture={(file, kind) => {
             setCameraOpen(false);
-            uploadSnap(file, kind);
+            setPending({ file, kind });
+          }}
+        />
+      )}
+
+      {pending && (
+        <CaptionPrompt
+          file={pending.file}
+          kind={pending.kind}
+          onCancel={() => setPending(null)}
+          onPost={(caption) => {
+            const p = pending;
+            setPending(null);
+            if (p) uploadSnap(p.file, p.kind, caption);
           }}
         />
       )}
