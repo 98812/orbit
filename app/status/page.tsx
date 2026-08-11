@@ -6,7 +6,6 @@ import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import { sendPush } from '@/lib/push';
 import { useIsAdmin } from '@/lib/useIsAdmin';
-import TrashIcon from '@/components/TrashIcon';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
@@ -80,7 +79,7 @@ function StatusCard({
         </div>
         {isAdmin && (
           <button className="del-btn" onClick={() => onDelete(status.id)} aria-label="Delete post">
-            <TrashIcon />
+            Delete
           </button>
         )}
       </div>
@@ -162,7 +161,7 @@ function StatusCard({
                   onClick={() => onDeleteComment(status.id, c.id)}
                   aria-label="Delete reply"
                 >
-                  <TrashIcon />
+                  ✕
                 </button>
               )}
             </div>

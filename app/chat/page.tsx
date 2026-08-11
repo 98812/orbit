@@ -6,7 +6,6 @@ import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import { sendPush } from '@/lib/push';
 import { useIsAdmin } from '@/lib/useIsAdmin';
-import TrashIcon from '@/components/TrashIcon';
 
 function formatTime(ts: string) {
   if (!ts) return '';
@@ -182,7 +181,7 @@ function ChatInner() {
                   <span>{formatTime(m.created_at)}</span>
                   {isAdmin && (
                     <button className="del-btn" onClick={() => removeMessage(m.id)} aria-label="Delete message">
-                      <TrashIcon />
+                      Delete
                     </button>
                   )}
                 </div>
