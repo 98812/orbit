@@ -8,6 +8,7 @@ import Avatar from '@/components/Avatar';
 import CameraCapture from '@/components/CameraCapture';
 import CaptionPrompt from '@/components/CaptionPrompt';
 import { sendPush } from '@/lib/push';
+import { useIsAdmin } from '@/lib/useIsAdmin';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
@@ -32,6 +33,9 @@ function SnapCard({
   onReact,
   onComment,
   onOpen,
+  isAdmin,
+  onDelete,
+  onDeleteComment,
 }: {
   snap: any;
   userId: string | null;
@@ -40,6 +44,9 @@ function SnapCard({
   onReact: (snapId: string, emoji: string) => void;
   onComment: (snapId: string, text: string) => Promise<void>;
   onOpen: (snap: any) => void;
+  isAdmin: boolean;
+  onDelete: (id: string) => void;
+  onDeleteComment: (snapId: string, commentId: string) => void;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState('');
@@ -91,9 +98,16 @@ function SnapCard({
             <Avatar src={snap.profiles?.avatar_url} name={snap.profiles?.full_name} size={32} />
             <p className="snap-author" style={{ margin: 0 }}>{snap.profiles?.full_name || 'friend'}</p>
           </div>
-          <span className="mono muted" style={{ fontSize: 11 }}>
-            {timeAgo(snap.created_at)}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="mono muted" style={{ fontSize: 11 }}>
+              {timeAgo(snap.created_at)}
+            </span>
+            {isAdmin && (
+              <button className="del-btn" onClick={() => onDelete(snap.id)} aria-label="Delete snap">
+                Delete
+              </button>
+            )}
+          </div>
         </div>
 
         {snap.caption && <p className="snap-caption">{snap.caption}</p>}
@@ -153,6 +167,15 @@ function SnapCard({
                 </span>
                 <span>{c.content}</span>
                 <span className="comment-time">{timeAgo(c.created_at)}</span>
+                {isAdmin && (
+                  <button
+                    className="del-btn"
+                    onClick={() => onDeleteComment(snap.id, c.id)}
+                    aria-label="Delete reply"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             ))}
 
@@ -286,6 +309,7 @@ function SnapsInner() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [pending, setPending] = useState<{ file: File; kind: 'image' | 'video' } | null>(null);
   const supabase = createClient();
+  const isAdmin = useIsAdmin();
 
   useEffect(() => {
     async function init() {
@@ -397,6 +421,33 @@ function SnapsInner() {
         senderId: userId || undefined,
       });
     }
+  }
+
+  async function removeSnap(id: string) {
+    if (!confirm('Delete this snap for everyone?')) return;
+    const { error } = await supabase.from('snaps').delete().eq('id', id);
+    if (error) {
+      console.error('Delete failed:', error);
+      alert('Could not delete that snap.');
+      return;
+    }
+    setSnaps((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  async function removeComment(snapId: string, commentId: string) {
+    if (!confirm('Delete this reply?')) return;
+    const { error } = await supabase.from('snap_comments').delete().eq('id', commentId);
+    if (error) {
+      console.error('Delete failed:', error);
+      return;
+    }
+    setSnaps((prev) =>
+      prev.map((s) =>
+        s.id === snapId
+          ? { ...s, snap_comments: (s.snap_comments || []).filter((c: any) => c.id !== commentId) }
+          : s
+      )
+    );
   }
 
   async function react(snapId: string, emoji: string) {
@@ -511,6 +562,9 @@ function SnapsInner() {
           onReact={react}
           onComment={addComment}
           onOpen={setViewer}
+          isAdmin={isAdmin}
+          onDelete={removeSnap}
+          onDeleteComment={removeComment}
         />
       ))}
     </div>

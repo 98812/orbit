@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import { sendPush } from '@/lib/push';
+import { useIsAdmin } from '@/lib/useIsAdmin';
 
 function formatTime(ts: string) {
   if (!ts) return '';
@@ -27,6 +28,7 @@ function ChatInner() {
   const [loading, setLoading] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef(createClient());
+  const isAdmin = useIsAdmin();
 
   useEffect(() => {
     const supabase = supabaseRef.current;
@@ -78,6 +80,18 @@ function ChatInner() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  async function removeMessage(id: string) {
+    if (!confirm('Delete this message for everyone?')) return;
+    const supabase = supabaseRef.current;
+    const { error } = await supabase.from('messages').delete().eq('id', id);
+    if (error) {
+      console.error('Delete failed:', error);
+      alert('Could not delete that message.');
+      return;
+    }
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+  }
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -154,8 +168,22 @@ function ChatInner() {
                   </div>
                 )}
                 <div className="bubble">{m.content}</div>
-                <div className="msg-time" style={{ textAlign: mine ? 'right' : 'left' }}>
-                  {formatTime(m.created_at)}
+                <div
+                  className="msg-time"
+                  style={{
+                    textAlign: mine ? 'right' : 'left',
+                    display: 'flex',
+                    gap: 8,
+                    justifyContent: mine ? 'flex-end' : 'flex-start',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span>{formatTime(m.created_at)}</span>
+                  {isAdmin && (
+                    <button className="del-btn" onClick={() => removeMessage(m.id)} aria-label="Delete message">
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -2051,3 +2051,28 @@ body {
   flex-shrink: 0;
   animation: recBlink 1.4s ease-in-out infinite;
 }
+
+/* --- admin delete --- */
+.del-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  color: #FF6B6B;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.del-btn:hover {
+  background: rgba(255, 107, 107, 0.14);
+  border-color: #FF6B6B;
+}
+
+.status-head {
+  align-items: flex-start;
+}

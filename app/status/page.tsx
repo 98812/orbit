@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import { sendPush } from '@/lib/push';
+import { useIsAdmin } from '@/lib/useIsAdmin';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
@@ -28,6 +29,9 @@ function StatusCard({
   avatars,
   onReact,
   onComment,
+  isAdmin,
+  onDelete,
+  onDeleteComment,
 }: {
   status: any;
   userId: string | null;
@@ -35,6 +39,9 @@ function StatusCard({
   avatars: Record<string, string>;
   onReact: (id: string, emoji: string) => void;
   onComment: (id: string, text: string) => Promise<void>;
+  isAdmin: boolean;
+  onDelete: (id: string) => void;
+  onDeleteComment: (statusId: string, commentId: string) => void;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
@@ -70,6 +77,11 @@ function StatusCard({
             {timeAgo(status.created_at)}
           </div>
         </div>
+        {isAdmin && (
+          <button className="del-btn" onClick={() => onDelete(status.id)} aria-label="Delete post">
+            Delete
+          </button>
+        )}
       </div>
 
       <p className="status-text">{status.content}</p>
@@ -143,6 +155,15 @@ function StatusCard({
               </span>
               <span>{c.content}</span>
               <span className="comment-time">{timeAgo(c.created_at)}</span>
+              {isAdmin && (
+                <button
+                  className="del-btn"
+                  onClick={() => onDeleteComment(status.id, c.id)}
+                  aria-label="Delete reply"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           ))}
 
@@ -175,6 +196,7 @@ function StatusInner() {
   const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createClient());
+  const isAdmin = useIsAdmin();
 
   useEffect(() => {
     const supabase = supabaseRef.current;
@@ -250,6 +272,35 @@ function StatusInner() {
         senderId: userId,
       });
     }
+  }
+
+  async function removeStatus(id: string) {
+    if (!confirm('Delete this post for everyone?')) return;
+    const supabase = supabaseRef.current;
+    const { error } = await supabase.from('statuses').delete().eq('id', id);
+    if (error) {
+      console.error('Delete failed:', error);
+      alert('Could not delete that post.');
+      return;
+    }
+    setStatuses((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  async function removeComment(statusId: string, commentId: string) {
+    if (!confirm('Delete this reply?')) return;
+    const supabase = supabaseRef.current;
+    const { error } = await supabase.from('status_comments').delete().eq('id', commentId);
+    if (error) {
+      console.error('Delete failed:', error);
+      return;
+    }
+    setStatuses((prev) =>
+      prev.map((s) =>
+        s.id === statusId
+          ? { ...s, status_comments: (s.status_comments || []).filter((c: any) => c.id !== commentId) }
+          : s
+      )
+    );
   }
 
   async function react(statusId: string, emoji: string) {
@@ -339,6 +390,9 @@ function StatusInner() {
           avatars={avatars}
           onReact={react}
           onComment={addComment}
+          isAdmin={isAdmin}
+          onDelete={removeStatus}
+          onDeleteComment={removeComment}
         />
       ))}
     </div>
