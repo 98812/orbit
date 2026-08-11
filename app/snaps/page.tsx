@@ -404,8 +404,12 @@ function SnapsInner() {
       <h1>Snaps</h1>
 
       <div className="upload-row">
-        <label className="upload-btn" style={{ background: 'var(--lime)', color: 'var(--ink)' }}>
-          📷 Take Photo
+        <label className={`capture-btn ${uploading ? 'busy' : ''}`}>
+          <span className="capture-ring" aria-hidden="true" />
+          <span className="capture-icon" aria-hidden="true">
+            {uploading ? '⏳' : '📷'}
+          </span>
+          <span className="capture-label">{uploading ? 'Uploading…' : 'Take a Snap'}</span>
           <input
             type="file"
             accept="image/*"
@@ -415,27 +419,7 @@ function SnapsInner() {
             style={{ display: 'none' }}
           />
         </label>
-        <label
-          className="upload-btn"
-          style={{ background: 'var(--ink-3)', color: 'var(--cloud)', border: '1px solid rgba(245,243,255,0.12)' }}
-        >
-          🖼️ From Library
-          <input
-            type="file"
-            accept="image/*,.heic,.heif"
-            onChange={uploadSnap}
-            disabled={uploading}
-            style={{ display: 'none' }}
-          />
-        </label>
       </div>
-
-      {uploading && (
-        <div className="empty">
-          <div className="empty-icon">⏫</div>
-          <p>Uploading…</p>
-        </div>
-      )}
 
       {loading && !uploading && (
         <div className="empty">

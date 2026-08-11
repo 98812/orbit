@@ -1319,3 +1319,90 @@ a {
 .dm-back:hover {
   background: rgba(198, 255, 61, 0.18);
 }
+
+/* --- camera capture button --- */
+.upload-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.capture-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, var(--pink), var(--grape));
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+  box-shadow: 0 10px 30px rgba(255, 46, 147, 0.32);
+}
+
+.capture-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 14px 38px rgba(255, 46, 147, 0.45);
+}
+
+.capture-btn:active {
+  transform: scale(0.94);
+}
+
+.capture-btn.busy {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.capture-ring {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 2px solid rgba(198, 255, 61, 0.5);
+  animation: capturePulse 2.4s ease-in-out infinite;
+}
+
+.capture-btn.busy .capture-ring {
+  animation: captureSpin 1s linear infinite;
+  border-color: rgba(198, 255, 61, 0.85);
+  border-top-color: transparent;
+}
+
+@keyframes capturePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.07);
+    opacity: 0.15;
+  }
+}
+
+@keyframes captureSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.capture-icon {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.capture-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capture-ring {
+    animation: none;
+  }
+}
