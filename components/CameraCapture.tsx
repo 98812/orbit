@@ -57,7 +57,14 @@ export default function CameraCapture({
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 1280 } },
-          audio: true,
+          audio: {
+            // phone-call processing muffles music and ambience — turn it off
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            channelCount: 2,
+            sampleRate: 48000,
+          },
         });
 
         if (cancelled) {
@@ -162,7 +169,19 @@ export default function CameraCapture({
 
     try {
       const mime = pickMime();
-      const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      const opts: MediaRecorderOptions = {
+        audioBitsPerSecond: 128000,
+        videoBitsPerSecond: 2500000,
+      };
+      if (mime) opts.mimeType = mime;
+
+      let rec: MediaRecorder;
+      try {
+        rec = new MediaRecorder(stream, opts);
+      } catch {
+        // some browsers reject the bitrate hints — fall back to defaults
+        rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      }
       chunksRef.current = [];
 
       rec.ondataavailable = (e) => {
@@ -184,7 +203,7 @@ export default function CameraCapture({
       };
 
       recorderRef.current = rec;
-      rec.start();
+      rec.start(250);
       didRecord.current = true;
       setRecording(true);
       setElapsed(0);
@@ -288,6 +307,8 @@ export default function CameraCapture({
               if (didRecord.current) stopRecording();
             }}
             onContextMenu={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
             disabled={!ready}
             aria-label="Tap for photo, hold to record"
           >
