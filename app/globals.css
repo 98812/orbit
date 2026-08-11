@@ -1975,3 +1975,49 @@ a {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+
+/* --- no pinch zoom --- */
+html {
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* --- pull to refresh --- */
+.ptr {
+  position: fixed;
+  top: 66px;
+  left: 50%;
+  z-index: 400;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--ink-2);
+  border: 1px solid rgba(245, 243, 255, 0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ptr svg {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.1s linear;
+}
+
+.ptr.spinning svg {
+  animation: ptrSpin 0.7s linear infinite;
+}
+
+@keyframes ptrSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (min-width: 821px) {
+  .ptr { display: none; }
+}

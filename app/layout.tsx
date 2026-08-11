@@ -6,6 +6,7 @@ import InstallPrompt from '@/components/InstallPrompt';
 import SwipeNav from '@/components/SwipeNav';
 import PresenceTracker from '@/components/PresenceTracker';
 import ScrollDepth from '@/components/ScrollDepth';
+import PullToRefresh from '@/components/PullToRefresh';
 
 export const metadata: Metadata = {
   title: 'Gen-Z — for revolution',
@@ -29,6 +30,8 @@ export const viewport: Viewport = {
   themeColor: '#14121F',
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
 };
 
@@ -45,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <NotificationProvider>
+          <PullToRefresh />
           <NavBar />
           <SwipeNav>{children}</SwipeNav>
           <InstallPrompt />
