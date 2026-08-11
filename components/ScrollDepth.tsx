@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 
 // Elements that get the depth treatment, with how strongly each shrinks.
 const TARGETS: { selector: string; scale: number; fade: number }[] = [
-  { selector: '.snap-card', scale: 0.22, fade: 0.55 },
-  { selector: '.status-card', scale: 0.18, fade: 0.5 },
-  { selector: '.msg-row', scale: 0.12, fade: 0.45 },
+  { selector: '.snap-card', scale: 0.38, fade: 0.62 },
+  { selector: '.status-card', scale: 0.3, fade: 0.55 },
+  { selector: '.msg-row', scale: 0.16, fade: 0.45 },
 ];
 
 export default function ScrollDepth() {
@@ -38,9 +38,10 @@ export default function ScrollDepth() {
         if (rect.bottom < -200 || rect.top > vh + 200) continue;
 
         const elCenter = rect.top + rect.height / 2;
-        // 0 when perfectly centred, 1 at the edge of the viewport
-        const dist = Math.min(1, Math.abs(elCenter - center) / (vh * 0.62));
-        const eased = dist * dist;
+        // 0 when perfectly centred, 1 once it is a screen away
+        const dist = Math.min(1, Math.abs(elCenter - center) / (vh * 0.9));
+        // steeper curve so each card further down steps down more clearly
+        const eased = dist * dist * (3 - 2 * dist);
 
         el.style.setProperty('--depth-scale', String(1 - eased * scale));
         el.style.setProperty('--depth-opacity', String(1 - eased * fade));
