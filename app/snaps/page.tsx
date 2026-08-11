@@ -9,6 +9,7 @@ import CameraCapture from '@/components/CameraCapture';
 import CaptionPrompt from '@/components/CaptionPrompt';
 import { sendPush } from '@/lib/push';
 import { useIsAdmin } from '@/lib/useIsAdmin';
+import TrashIcon from '@/components/TrashIcon';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
@@ -104,7 +105,7 @@ function SnapCard({
             </span>
             {isAdmin && (
               <button className="del-btn" onClick={() => onDelete(snap.id)} aria-label="Delete snap">
-                Delete
+                <TrashIcon />
               </button>
             )}
           </div>
@@ -173,7 +174,7 @@ function SnapCard({
                     onClick={() => onDeleteComment(snap.id, c.id)}
                     aria-label="Delete reply"
                   >
-                    ✕
+                    <TrashIcon />
                   </button>
                 )}
               </div>
