@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 
-// how often to refresh last_seen while the app stays open
-const INTERVAL_MS = 3 * 60 * 1000;
+// how often to refresh last_seen while the app stays open (1 minute)
+const INTERVAL_MS = 60 * 1000;
 
 export default function PresenceTracker() {
   useEffect(() => {

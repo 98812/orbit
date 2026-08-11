@@ -10,7 +10,7 @@ function lastSeenLabel(ts: string | null) {
   if (!ts) return 'never opened';
   const diff = Date.now() - new Date(ts).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 2) return 'online now';
+  if (mins < 3) return 'online now';
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
@@ -24,7 +24,7 @@ function lastSeenLabel(ts: string | null) {
 function staleness(ts: string | null) {
   if (!ts) return 'cold';
   const days = (Date.now() - new Date(ts).getTime()) / 86400000;
-  if (days < 0.05) return 'live';
+  if (days < 0.0021) return 'live';
   if (days < 3) return 'warm';
   if (days < 14) return 'cool';
   return 'cold';
@@ -33,6 +33,7 @@ function staleness(ts: string | null) {
 export default function AdminPage() {
   const [people, setPeople] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [, setTick] = useState(0);
   const supabase = createClient();
 
   useEffect(() => {
@@ -56,6 +57,23 @@ export default function AdminPage() {
       setPeople(data || []);
     }
     load();
+
+    // re-poll the list every 30s so activity stays current
+    const poll = setInterval(load, 30000);
+
+    // re-render every 10s so the "2m ago" labels stay honest
+    const tick = setInterval(() => setTick((t) => t + 1), 10000);
+
+    function onVisible() {
+      if (document.visibilityState === 'visible') load();
+    }
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(poll);
+      clearInterval(tick);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   async function setApproval(id: string, approved: boolean) {
