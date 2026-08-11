@@ -38,6 +38,12 @@ const ICONS: Record<string, React.ReactNode> = {
       <circle cx="12" cy="7" r="4" />
     </svg>
   ),
+  status: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+    </svg>
+  ),
   mail: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -65,6 +71,7 @@ type NavLink = {
 };
 
 const LINKS: NavLink[] = [
+  { href: '/status', label: "What's going on?", icon: 'status' },
   { href: '/chat', label: 'Chat', icon: 'chat', badge: 'messages' },
   { href: '/snaps', label: 'Snaps', icon: 'snaps', badge: 'snaps' },
   { href: '/messages', label: 'Messages', icon: 'mail', badge: 'dms' },

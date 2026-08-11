@@ -1728,3 +1728,80 @@ a {
   margin-bottom: 4px;
   color: var(--cloud);
 }
+
+/* --- status feed --- */
+.status-composer {
+  background: var(--ink-2);
+  border: 1px solid rgba(245, 243, 255, 0.08);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.status-input {
+  resize: none;
+  font-family: inherit;
+  line-height: 1.5;
+  min-height: 60px;
+}
+
+.status-card {
+  background: var(--ink-2);
+  border: 1px solid rgba(245, 243, 255, 0.08);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  animation: riseIn 0.35s ease both;
+  transition: border-color 0.2s ease;
+}
+
+.status-card:hover {
+  border-color: rgba(245, 243, 255, 0.16);
+}
+
+.status-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 12px;
+}
+
+.status-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.status-text {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.status-reactions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.status-actions {
+  display: flex;
+  gap: 18px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(245, 243, 255, 0.06);
+}
+
+/* keep the long "What's going on?" label from crowding the nav */
+@media (min-width: 721px) and (max-width: 1150px) {
+  .nav-link .nav-text {
+    font-size: 13.5px;
+  }
+  .nav-link {
+    padding: 8px 10px;
+  }
+  .nav-links {
+    gap: 2px;
+  }
+}
