@@ -1894,3 +1894,33 @@ a {
   color: #FF6B6B;
   margin-left: 4px;
 }
+
+/* --- scroll depth effect --- */
+.snap-card,
+.status-card,
+.msg-row {
+  transform-origin: center center;
+  animation-name: depthIn;
+  will-change: transform, opacity;
+}
+
+@keyframes depthIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(var(--depth-scale, 1));
+  }
+  to {
+    opacity: var(--depth-opacity, 1);
+    transform: translateY(0) scale(var(--depth-scale, 1));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snap-card,
+  .status-card,
+  .msg-row {
+    animation-name: none;
+    transform: none;
+    opacity: 1;
+  }
+}

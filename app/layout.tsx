@@ -5,6 +5,7 @@ import NavBar from '@/components/NavBar';
 import InstallPrompt from '@/components/InstallPrompt';
 import SwipeNav from '@/components/SwipeNav';
 import PresenceTracker from '@/components/PresenceTracker';
+import ScrollDepth from '@/components/ScrollDepth';
 
 export const metadata: Metadata = {
   title: 'Gen-Z — for revolution',
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SwipeNav>{children}</SwipeNav>
           <InstallPrompt />
           <PresenceTracker />
+          <ScrollDepth />
         </NotificationProvider>
       </body>
     </html>
