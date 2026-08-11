@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 import ApprovalGate from '@/components/ApprovalGate';
+import { sendPush } from '@/lib/push';
 import Avatar from '@/components/Avatar';
 
 const FIELDS = [
@@ -22,7 +24,9 @@ function ProfileInner() {
   const [saved, setSaved] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [signingOut, setSigningOut] = useState(false);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     async function load() {
@@ -82,6 +86,51 @@ function ProfileInner() {
     setProfile({ ...profile, avatar_url: newUrl });
     window.dispatchEvent(new CustomEvent('genz-avatar-updated', { detail: newUrl }));
     if (fileRef.current) fileRef.current.value = '';
+  }
+
+  async function signOut() {
+    if (!confirm('Sign out of Gen-Z?')) return;
+    setSigningOut(true);
+
+    try {
+      // stamp the departure so the admin page can show it
+      await supabase
+        .from('profiles')
+        .update({ left_at: new Date().toISOString() })
+        .eq('id', profile.id);
+
+      // tell the admin someone left
+      const { data: admins } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', 'aayushranamukti@gmail.com');
+
+      const adminIds = (admins || [])
+        .map((a: any) => a.id)
+        .filter((id: string) => id !== profile.id);
+
+      if (adminIds.length) {
+        await sendPush({
+          recipientIds: adminIds,
+          title: 'Someone signed out',
+          message: (profile.full_name || 'A member') + ' signed out of Gen-Z',
+          url: '/admin',
+          tag: 'signout',
+          senderId: profile.id,
+        });
+      }
+    } catch (err) {
+      console.error('Sign-out bookkeeping failed:', err);
+    }
+
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Sign out failed:', err);
+    }
+
+    router.push('/');
+    router.refresh();
   }
 
   async function save(e: React.FormEvent) {
@@ -171,6 +220,20 @@ function ProfileInner() {
           )}
         </div>
       </form>
+
+      <div className="signout-row">
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>Signed in</div>
+          {profile.email && (
+            <div className="mono muted" style={{ fontSize: 12, marginTop: 3 }}>
+              {profile.email}
+            </div>
+          )}
+        </div>
+        <button type="button" className="btn btn-danger btn-sm" onClick={signOut} disabled={signingOut}>
+          {signingOut ? 'Signing out…' : 'Sign out'}
+        </button>
+      </div>
     </div>
   );
 }

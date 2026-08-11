@@ -2,8 +2,33 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
+import Avatar from '@/components/Avatar';
 
 const ADMIN_EMAIL = 'aayushranamukti@gmail.com';
+
+function lastSeenLabel(ts: string | null) {
+  if (!ts) return 'never opened';
+  const diff = Date.now() - new Date(ts).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 2) return 'online now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'yesterday';
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
+function staleness(ts: string | null) {
+  if (!ts) return 'cold';
+  const days = (Date.now() - new Date(ts).getTime()) / 86400000;
+  if (days < 0.05) return 'live';
+  if (days < 3) return 'warm';
+  if (days < 14) return 'cool';
+  return 'cold';
+}
 
 export default function AdminPage() {
   const [people, setPeople] = useState<any[]>([]);
@@ -21,7 +46,7 @@ export default function AdminPage() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, approved')
+        .select('id, full_name, email, approved, avatar_url, last_seen, left_at')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -66,7 +91,15 @@ export default function AdminPage() {
   }
 
   const pending = people.filter((p) => !p.approved);
-  const approved = people.filter((p) => p.approved);
+
+  // approved members sorted by most inactive first
+  const approved = people
+    .filter((p) => p.approved)
+    .sort((a, b) => {
+      const at = a.last_seen ? new Date(a.last_seen).getTime() : 0;
+      const bt = b.last_seen ? new Date(b.last_seen).getTime() : 0;
+      return at - bt;
+    });
 
   return (
     <div className="page">
@@ -83,12 +116,9 @@ export default function AdminPage() {
       {pending.length === 0 && <p className="muted">Nobody waiting right now.</p>}
 
       {pending.map((p) => (
-        <div
-          key={p.id}
-          className="card pop"
-          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
-        >
-          <div>
+        <div key={p.id} className="card pop admin-row">
+          <Avatar src={p.avatar_url} name={p.full_name} size={40} />
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700 }}>{p.full_name || 'No name'}</div>
             <div className="mono muted" style={{ fontSize: 12, marginTop: 3 }}>
               {p.email}
@@ -100,45 +130,39 @@ export default function AdminPage() {
         </div>
       ))}
 
-      <h2 style={{ marginTop: 36, marginBottom: 14 }}>
+      <h2 style={{ marginTop: 36, marginBottom: 6 }}>
         Approved members <span className="muted">({approved.length})</span>
       </h2>
+      <p className="muted" style={{ fontSize: 13, marginTop: 0, marginBottom: 14 }}>
+        Sorted by least recently active.
+      </p>
 
       {approved.map((p) => (
-        <div
-          key={p.id}
-          className="card"
-          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
-        >
-          <div>
+        <div key={p.id} className="card admin-row">
+          <Avatar src={p.avatar_url} name={p.full_name} size={40} />
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700 }}>
               {p.full_name || 'No name'}
               {p.email === ADMIN_EMAIL && (
-                <span
-                  className="mono"
-                  style={{
-                    marginLeft: 8,
-                    fontSize: 10,
-                    padding: '2px 7px',
-                    borderRadius: 999,
-                    background: 'rgba(198,255,61,0.14)',
-                    color: 'var(--lime)',
-                  }}
-                >
-                  ADMIN
-                </span>
+                <span className="mono admin-tag">ADMIN</span>
               )}
             </div>
             <div className="mono muted" style={{ fontSize: 12, marginTop: 3 }}>
               {p.email}
             </div>
+            <div className="seen-row">
+              <span className={`seen-dot ${staleness(p.last_seen)}`} />
+              <span className="mono" style={{ fontSize: 11 }}>
+                {lastSeenLabel(p.last_seen)}
+              </span>
+              {p.left_at &&
+                (!p.last_seen || new Date(p.left_at) > new Date(p.last_seen)) && (
+                  <span className="left-tag mono">signed out</span>
+                )}
+            </div>
           </div>
           {p.email !== ADMIN_EMAIL && (
-            <button
-              onClick={() => setApproval(p.id, false)}
-              className="btn btn-sm"
-              style={{ background: 'transparent', color: '#FF6B6B', border: '1.5px solid rgba(255,107,107,0.4)' }}
-            >
+            <button onClick={() => setApproval(p.id, false)} className="btn btn-sm btn-danger">
               Remove
             </button>
           )}
