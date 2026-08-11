@@ -1,9 +1,12 @@
 {
+  "id": "/",
   "name": "Gen-Z — for revolution",
   "short_name": "Gen-Z",
   "description": "A private space for the group: profiles, chat, and Snaps with reactions.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#14121F",
   "theme_color": "#14121F",
