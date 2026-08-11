@@ -64,14 +64,26 @@ function SnapCard({
 
   return (
     <div className="snap-card">
-      <button className="snap-img-btn" onClick={() => onOpen(snap)} aria-label="View full size">
-        <img
-          src={snap.image_url}
-          alt={`Snap from ${snap.profiles?.full_name || 'a friend'}`}
-          className="snap-thumb"
-        />
-        <span className="snap-expand">⤢</span>
-      </button>
+      {snap.media_type === 'video' ? (
+        <div className="snap-video-wrap">
+          <video
+            src={snap.image_url}
+            className="snap-thumb"
+            controls
+            playsInline
+            preload="metadata"
+          />
+        </div>
+      ) : (
+        <button className="snap-img-btn" onClick={() => onOpen(snap)} aria-label="View full size">
+          <img
+            src={snap.image_url}
+            alt={`Snap from ${snap.profiles?.full_name || 'a friend'}`}
+            className="snap-thumb"
+          />
+          <span className="snap-expand">⤢</span>
+        </button>
+      )}
       <div className="snap-meta">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -175,15 +187,16 @@ function Lightbox({
   onClose: () => void;
   onNavigate: (snap: any) => void;
 }) {
-  const index = snaps.findIndex((s) => s.id === current.id);
+  const items = snaps.filter((s) => s.media_type !== 'video');
+  const index = items.findIndex((s) => s.id === current.id);
   const hasPrev = index > 0;
-  const hasNext = index < snaps.length - 1;
+  const hasNext = index < items.length - 1;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft' && hasPrev) onNavigate(snaps[index - 1]);
-      if (e.key === 'ArrowRight' && hasNext) onNavigate(snaps[index + 1]);
+      if (e.key === 'ArrowLeft' && hasPrev) onNavigate(items[index - 1]);
+      if (e.key === 'ArrowRight' && hasNext) onNavigate(items[index + 1]);
     }
     window.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
@@ -208,8 +221,8 @@ function Lightbox({
       onTouchEnd={(e) => {
         if (touchStart.current === null) return;
         const dx = e.changedTouches[0].clientX - touchStart.current;
-        if (dx > 60 && hasPrev) onNavigate(snaps[index - 1]);
-        if (dx < -60 && hasNext) onNavigate(snaps[index + 1]);
+        if (dx > 60 && hasPrev) onNavigate(items[index - 1]);
+        if (dx < -60 && hasNext) onNavigate(items[index + 1]);
         touchStart.current = null;
       }}
     >
@@ -222,7 +235,7 @@ function Lightbox({
           className="lightbox-nav prev"
           onClick={(e) => {
             e.stopPropagation();
-            onNavigate(snaps[index - 1]);
+            onNavigate(items[index - 1]);
           }}
           aria-label="Previous"
         >
@@ -236,7 +249,7 @@ function Lightbox({
           <strong>{current.profiles?.full_name || 'friend'}</strong>
           <span className="mono">{timeAgo(current.created_at)}</span>
           <span className="mono lightbox-count">
-            {index + 1} / {snaps.length}
+            {index + 1} / {items.length}
           </span>
         </figcaption>
       </figure>
@@ -246,7 +259,7 @@ function Lightbox({
           className="lightbox-nav next"
           onClick={(e) => {
             e.stopPropagation();
-            onNavigate(snaps[index + 1]);
+            onNavigate(items[index + 1]);
           }}
           aria-label="Next"
         >
@@ -300,7 +313,10 @@ function SnapsInner() {
     init();
   }, []);
 
-  async function uploadSnap(input: File | React.ChangeEvent<HTMLInputElement>) {
+  async function uploadSnap(
+    input: File | React.ChangeEvent<HTMLInputElement>,
+    kind: 'image' | 'video' = 'image'
+  ) {
     let file: File | undefined =
       input instanceof File ? input : input.target.files?.[0];
     const inputEl = input instanceof File ? null : input.target;
@@ -309,10 +325,11 @@ function SnapsInner() {
     setUploading(true);
 
     const isHeic =
+      kind === 'image' && (
       file.type === 'image/heic' ||
       file.type === 'image/heif' ||
       file.name.toLowerCase().endsWith('.heic') ||
-      file.name.toLowerCase().endsWith('.heif');
+      file.name.toLowerCase().endsWith('.heif'));
 
     if (isHeic) {
       try {
@@ -341,7 +358,7 @@ function SnapsInner() {
 
     const { data, error } = await supabase
       .from('snaps')
-      .insert({ user_id: userId, image_url: urlData.publicUrl })
+      .insert({ user_id: userId, image_url: urlData.publicUrl, media_type: kind })
       .select('*, profiles(full_name, avatar_url), reactions(emoji, user_id), snap_comments(id, content, user_id, created_at)')
       .single();
 
@@ -360,7 +377,9 @@ function SnapsInner() {
       sendPush({
         recipientIds: others,
         title: 'New Snap',
-        message: (data.profiles?.full_name || 'Someone') + ' just posted a Snap',
+        message:
+          (data.profiles?.full_name || 'Someone') +
+          (kind === 'video' ? ' just posted a clip' : ' just posted a Snap'),
         url: '/snaps',
         tag: 'snap',
         senderId: userId || undefined,
@@ -440,9 +459,9 @@ function SnapsInner() {
       {cameraOpen && (
         <CameraCapture
           onClose={() => setCameraOpen(false)}
-          onCapture={(file) => {
+          onCapture={(file, kind) => {
             setCameraOpen(false);
-            uploadSnap(file);
+            uploadSnap(file, kind);
           }}
         />
       )}

@@ -3,22 +3,39 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+const MAX_SECONDS = 15;
+
 export default function CameraCapture({
   onCapture,
   onClose,
 }: {
-  onCapture: (file: File) => void;
+  onCapture: (file: File, kind: 'image' | 'video') => void;
   onClose: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+  const holdTimer = useRef<any>(null);
+  const stopTimer = useRef<any>(null);
+  const tickTimer = useRef<any>(null);
+  const didRecord = useRef(false);
+
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [facing, setFacing] = useState<'environment' | 'user'>('environment');
   const [flash, setFlash] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [canRecord, setCanRecord] = useState(true);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== 'undefined' && typeof MediaRecorder === 'undefined') {
+      setCanRecord(false);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,12 +56,8 @@ export default function CameraCapture({
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: facing,
-            width: { ideal: 1920 },
-            height: { ideal: 1920 },
-          },
-          audio: false,
+          video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 1280 } },
+          audio: true,
         });
 
         if (cancelled) {
@@ -74,6 +87,9 @@ export default function CameraCapture({
 
     return () => {
       cancelled = true;
+      clearTimeout(holdTimer.current);
+      clearTimeout(stopTimer.current);
+      clearInterval(tickTimer.current);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
@@ -93,7 +109,7 @@ export default function CameraCapture({
     };
   }, [onClose]);
 
-  function shoot() {
+  function takePhoto() {
     const video = videoRef.current;
     if (!video || !ready) return;
 
@@ -119,15 +135,101 @@ export default function CameraCapture({
     canvas.toBlob(
       (blob) => {
         if (!blob) return;
-        const file = new File([blob], `snap-${Date.now()}.jpg`, { type: 'image/jpeg' });
-        onCapture(file);
+        onCapture(new File([blob], `snap-${Date.now()}.jpg`, { type: 'image/jpeg' }), 'image');
       },
       'image/jpeg',
       0.9
     );
   }
 
+  function pickMime() {
+    const options = [
+      'video/mp4;codecs=h264,aac',
+      'video/mp4',
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+    ];
+    for (const m of options) {
+      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m)) return m;
+    }
+    return '';
+  }
+
+  function startRecording() {
+    const stream = streamRef.current;
+    if (!stream || !ready || !canRecord) return;
+
+    try {
+      const mime = pickMime();
+      const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      chunksRef.current = [];
+
+      rec.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      rec.onstop = () => {
+        clearInterval(tickTimer.current);
+        const type = rec.mimeType || 'video/webm';
+        const blob = new Blob(chunksRef.current, { type });
+        chunksRef.current = [];
+        setRecording(false);
+        setElapsed(0);
+
+        if (blob.size < 1000) return;
+
+        const ext = type.includes('mp4') ? 'mp4' : 'webm';
+        onCapture(new File([blob], `clip-${Date.now()}.${ext}`, { type }), 'video');
+      };
+
+      recorderRef.current = rec;
+      rec.start();
+      didRecord.current = true;
+      setRecording(true);
+      setElapsed(0);
+
+      tickTimer.current = setInterval(() => {
+        setElapsed((e) => e + 0.1);
+      }, 100);
+
+      stopTimer.current = setTimeout(() => stopRecording(), MAX_SECONDS * 1000);
+    } catch (err) {
+      console.error('Recording failed:', err);
+      setRecording(false);
+      setCanRecord(false);
+    }
+  }
+
+  function stopRecording() {
+    clearTimeout(stopTimer.current);
+    const rec = recorderRef.current;
+    if (rec && rec.state !== 'inactive') {
+      rec.stop();
+    }
+    recorderRef.current = null;
+  }
+
+  function onPressStart() {
+    if (!ready) return;
+    didRecord.current = false;
+    holdTimer.current = setTimeout(() => {
+      startRecording();
+    }, 320);
+  }
+
+  function onPressEnd() {
+    clearTimeout(holdTimer.current);
+    if (didRecord.current) {
+      stopRecording();
+    } else {
+      takePhoto();
+    }
+  }
+
   if (!mounted) return null;
+
+  const pct = Math.min(100, (elapsed / MAX_SECONDS) * 100);
 
   return createPortal(
     <div className="camera-overlay">
@@ -142,6 +244,13 @@ export default function CameraCapture({
       >
         ⟳
       </button>
+
+      {recording && (
+        <div className="rec-pill">
+          <span className="rec-dot" />
+          {elapsed.toFixed(1)}s
+        </div>
+      )}
 
       <div className="camera-stage">
         {error ? (
@@ -171,14 +280,41 @@ export default function CameraCapture({
       {!error && (
         <div className="camera-controls">
           <button
-            className="shutter"
-            onClick={shoot}
+            className={`shutter ${recording ? 'recording' : ''}`}
+            onPointerDown={onPressStart}
+            onPointerUp={onPressEnd}
+            onPointerLeave={() => {
+              clearTimeout(holdTimer.current);
+              if (didRecord.current) stopRecording();
+            }}
+            onContextMenu={(e) => e.preventDefault()}
             disabled={!ready}
-            aria-label="Take photo"
+            aria-label="Tap for photo, hold to record"
           >
+            {recording && (
+              <svg className="rec-ring" viewBox="0 0 100 100" aria-hidden="true">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="46"
+                  fill="none"
+                  stroke="var(--pink)"
+                  strokeWidth="6"
+                  strokeDasharray={`${pct * 2.89} 289`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 50 50)"
+                />
+              </svg>
+            )}
             <span className="shutter-inner" />
           </button>
-          <p className="camera-hint mono">tap to post instantly</p>
+          <p className="camera-hint mono">
+            {recording
+              ? 'release to post'
+              : canRecord
+              ? 'tap for photo · hold to record'
+              : 'tap to post instantly'}
+          </p>
         </div>
       )}
     </div>,
