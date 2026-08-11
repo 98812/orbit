@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
+import CameraCapture from '@/components/CameraCapture';
 import { sendPush } from '@/lib/push';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
@@ -265,6 +266,7 @@ function SnapsInner() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [viewer, setViewer] = useState<any>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -298,8 +300,11 @@ function SnapsInner() {
     init();
   }, []);
 
-  async function uploadSnap(e: React.ChangeEvent<HTMLInputElement>) {
-    let file = e.target.files?.[0];
+  async function uploadSnap(input: File | React.ChangeEvent<HTMLInputElement>) {
+    let file: File | undefined =
+      input instanceof File ? input : input.target.files?.[0];
+    const inputEl = input instanceof File ? null : input.target;
+
     if (!file || !userId) return;
     setUploading(true);
 
@@ -348,7 +353,7 @@ function SnapsInner() {
     }
 
     setSnaps((prev) => [data, ...prev]);
-    e.target.value = '';
+    if (inputEl) inputEl.value = '';
 
     const others = Object.keys(names).filter((id) => id !== userId);
     if (others.length) {
@@ -404,21 +409,18 @@ function SnapsInner() {
       <h1>Snaps</h1>
 
       <div className="upload-row">
-        <label className={`capture-btn ${uploading ? 'busy' : ''}`}>
+        <button
+          type="button"
+          className={`capture-btn ${uploading ? 'busy' : ''}`}
+          onClick={() => setCameraOpen(true)}
+          disabled={uploading}
+        >
           <span className="capture-ring" aria-hidden="true" />
           <span className="capture-icon" aria-hidden="true">
             {uploading ? '⏳' : '📷'}
           </span>
           <span className="capture-label">{uploading ? 'Uploading…' : 'Take a Snap'}</span>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={uploadSnap}
-            disabled={uploading}
-            style={{ display: 'none' }}
-          />
-        </label>
+        </button>
       </div>
 
       {loading && !uploading && (
@@ -433,6 +435,16 @@ function SnapsInner() {
           <div className="empty-icon">📭</div>
           <p>No Snaps yet — post the first one.</p>
         </div>
+      )}
+
+      {cameraOpen && (
+        <CameraCapture
+          onClose={() => setCameraOpen(false)}
+          onCapture={(file) => {
+            setCameraOpen(false);
+            uploadSnap(file);
+          }}
+        />
       )}
 
       {viewer && (
