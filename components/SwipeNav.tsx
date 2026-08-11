@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-const ORDER = ['/chat', '/snaps', '/messages', '/members', '/profile'];
+const ORDER = ['/status', '/chat', '/snaps', '/messages', '/members', '/profile'];
 
 export default function SwipeNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
