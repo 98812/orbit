@@ -2499,3 +2499,61 @@ body {
     animation: none;
   }
 }
+
+/* --- hero portrait: force centring, override any earlier rules --- */
+.hero .hero-portrait {
+  position: absolute !important;
+  top: 47% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(78vw, 460px) !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1;
+  margin: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none;
+  display: block;
+}
+
+.hero .hero-portrait img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  display: block;
+  opacity: 0.3;
+  filter: grayscale(0.25) contrast(1.05);
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 45%,
+    #000 22%,
+    rgba(0, 0, 0, 0.75) 42%,
+    rgba(0, 0, 0, 0.28) 62%,
+    transparent 78%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 45%,
+    #000 22%,
+    rgba(0, 0, 0, 0.75) 42%,
+    rgba(0, 0, 0, 0.28) 62%,
+    transparent 78%
+  );
+  border-radius: 0;
+  border: none;
+}
+
+/* the text must sit above the portrait */
+.hero .hero-inner {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 640px) {
+  .hero .hero-portrait {
+    width: 86vw !important;
+    top: 44% !important;
+  }
+  .hero .hero-portrait img {
+    opacity: 0.24;
+  }
+}
