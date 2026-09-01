@@ -13,6 +13,7 @@ export default function CameraCapture({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [denied, setDenied] = useState(false);
   const [ready, setReady] = useState(false);
   const [facing, setFacing] = useState<'environment' | 'user'>('environment');
   const [flash, setFlash] = useState(false);
@@ -26,6 +27,7 @@ export default function CameraCapture({
     async function start() {
       setReady(false);
       setError(null);
+      setDenied(false);
 
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
@@ -61,8 +63,9 @@ export default function CameraCapture({
         setReady(true);
       } catch (err: any) {
         console.error('Camera error:', err);
-        if (err?.name === 'NotAllowedError') {
-          setError('Camera permission was denied. Allow it in your browser settings.');
+        if (err?.name === 'NotAllowedError' || err?.name === 'SecurityError') {
+          setDenied(true);
+          setError('blocked');
         } else if (err?.name === 'NotFoundError') {
           setError('No camera found on this device.');
         } else {
@@ -152,13 +155,60 @@ export default function CameraCapture({
 
       <div className="camera-stage">
         {error ? (
-          <div className="camera-error">
-            <div style={{ fontSize: 38, marginBottom: 12 }}>📷</div>
-            <p>{error}</p>
-            <button className="btn btn-primary btn-sm" style={{ marginTop: 14 }} onClick={onClose}>
-              Close
-            </button>
-          </div>
+          denied ? (
+            <div className="camera-error">
+              <div style={{ fontSize: 40, marginBottom: 14 }}>🔒</div>
+              <h2 style={{ margin: '0 0 10px', fontSize: 19 }}>Camera is blocked</h2>
+              <p style={{ marginBottom: 16 }}>
+                Turn it back on in your settings — once denied, the app can&apos;t ask again.
+              </p>
+
+              <div className="perm-steps">
+                <div className="perm-block">
+                  <span className="perm-label mono">iPhone</span>
+                  <span>Settings &rarr; Safari &rarr; Camera &rarr; <strong>Ask</strong></span>
+                </div>
+                <div className="perm-block">
+                  <span className="perm-label mono">Android</span>
+                  <span>Lock icon by the address bar &rarr; Permissions &rarr; Camera</span>
+                </div>
+                <div className="perm-block">
+                  <span className="perm-label mono">Computer</span>
+                  <span>Lock icon left of the address bar &rarr; Camera &rarr; Allow</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button className="btn btn-primary btn-sm" onClick={() => window.location.reload()}>
+                  I&apos;ve allowed it
+                </button>
+                <label className="btn btn-ghost btn-sm">
+                  🖼️ Use library
+                  <input
+                    type="file"
+                    accept="image/*,.heic,.heif"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      e.target.value = '';
+                      if (f) onCapture(f, 'image');
+                    }}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                <button className="btn btn-ghost btn-sm" onClick={onClose}>
+                  Close
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="camera-error">
+              <div style={{ fontSize: 38, marginBottom: 12 }}>📷</div>
+              <p>{error}</p>
+              <button className="btn btn-primary btn-sm" style={{ marginTop: 14 }} onClick={onClose}>
+                Close
+              </button>
+            </div>
+          )
         ) : (
           <>
             <video

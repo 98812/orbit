@@ -2362,3 +2362,38 @@ body {
 .phero-detail:last-child {
   margin-bottom: 0;
 }
+
+/* --- camera permission help --- */
+.perm-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 330px;
+  margin-top: 4px;
+}
+
+.perm-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  background: rgba(245, 243, 255, 0.06);
+  border: 1px solid rgba(245, 243, 255, 0.1);
+  border-radius: 10px;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--cloud-dim);
+}
+
+.perm-label {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lime);
+}
+
+.camera-error h2 {
+  color: var(--cloud);
+}
