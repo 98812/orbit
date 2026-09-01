@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { upscaleAvatar } from '@/lib/upscale';
 
 const COLORS = [
   'linear-gradient(135deg, #FF2E93, #7B2FF7)',
@@ -35,7 +36,8 @@ export default function Avatar({
   size?: number;
 }) {
   const [failed, setFailed] = useState(false);
-  const showImage = src && !failed;
+  const photo = upscaleAvatar(src, size > 80 ? 512 : 192);
+  const showImage = photo && !failed;
 
   return (
     <div
@@ -61,7 +63,7 @@ export default function Avatar({
     >
       {showImage ? (
         <img
-          src={src!}
+          src={photo}
           alt=""
           referrerPolicy="no-referrer"
           onError={() => setFailed(true)}

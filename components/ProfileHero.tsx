@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { upscaleAvatar } from '@/lib/upscale';
 
 function initials(name?: string | null) {
   if (!name) return '?';
@@ -11,7 +12,8 @@ function initials(name?: string | null) {
 
 export default function ProfileHero({ profile }: { profile: any }) {
   const [failed, setFailed] = useState(false);
-  const hasPhoto = profile?.avatar_url && !failed;
+  const photo = upscaleAvatar(profile?.avatar_url);
+  const hasPhoto = photo && !failed;
 
   const details = [
     profile?.talent,
@@ -24,7 +26,7 @@ export default function ProfileHero({ profile }: { profile: any }) {
     <div className="phero">
       {hasPhoto ? (
         <img
-          src={profile.avatar_url}
+          src={photo}
           alt=""
           className="phero-img"
           referrerPolicy="no-referrer"

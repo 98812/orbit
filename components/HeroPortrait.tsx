@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
+import { upscaleAvatar } from '@/lib/upscale';
 
 export default function HeroPortrait() {
   const [url, setUrl] = useState<string | null>(null);
@@ -19,7 +20,7 @@ export default function HeroPortrait() {
         .select('avatar_url')
         .eq('id', user.id)
         .single();
-      if (!cancelled && data?.avatar_url) setUrl(data.avatar_url);
+      if (!cancelled && data?.avatar_url) setUrl(upscaleAvatar(data.avatar_url) || null);
     }
 
     load();
