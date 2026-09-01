@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
 import CrowdBackdrop from '@/components/CrowdBackdrop';
+import HeroPortrait from '@/components/HeroPortrait';
 
 const ROTATING = ['orbit', 'the loop', 'the group chat', 'touch'];
 
@@ -176,6 +177,7 @@ export default function HomePage() {
     <main className="hero">
       <Particles />
       <CrowdBackdrop />
+      <HeroPortrait />
 
       <div
         aria-hidden="true"
