@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
+import ProfileHero from '@/components/ProfileHero';
 import Link from 'next/link';
 
 function MembersInner() {
@@ -67,23 +68,10 @@ function MembersInner() {
               ✕
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <Avatar src={open.avatar_url} name={open.full_name} size={64} />
-              <div>
-                <h2 style={{ margin: 0 }}>{open.full_name || 'No name'}</h2>
-                {open.talent && (
-                  <div className="mono" style={{ fontSize: 12, color: 'var(--lime)', marginTop: 4 }}>
-                    {open.talent}
-                  </div>
-                )}
-              </div>
-            </div>
+            <ProfileHero profile={open} />
 
             {[
-              ['Bio', open.bio],
-              ['Goal', open.goal],
               ['Mission', open.mission],
-              ['Qualification', open.qualification],
               ['Phone', open.phone_number],
               ['Contact', open.contact_note],
             ]
