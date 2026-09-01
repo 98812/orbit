@@ -2076,3 +2076,64 @@ body {
 .status-head {
   align-items: flex-start;
 }
+
+/* --- weary crowd backdrop --- */
+.crowd {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 58%;
+  min-height: 260px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.crowd-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.fig {
+  opacity: var(--o, 0.1);
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: sway var(--dur, 7s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes sway {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(var(--drift, 4px)) rotate(0.5deg);
+  }
+}
+
+.crowd-haze {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--ink) 0%,
+    rgba(20, 18, 31, 0.82) 22%,
+    rgba(20, 18, 31, 0.45) 55%,
+    rgba(20, 18, 31, 0.72) 100%
+  );
+}
+
+@media (max-width: 640px) {
+  .crowd {
+    height: 46%;
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fig {
+    animation: none;
+  }
+}

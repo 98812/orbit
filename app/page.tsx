@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
+import CrowdBackdrop from '@/components/CrowdBackdrop';
 
 const ROTATING = ['orbit', 'the loop', 'the group chat', 'touch'];
 
@@ -174,6 +175,7 @@ export default function HomePage() {
   return (
     <main className="hero">
       <Particles />
+      <CrowdBackdrop />
 
       <div
         aria-hidden="true"
