@@ -2137,3 +2137,26 @@ body {
     animation: none;
   }
 }
+
+/* --- crowd backdrop: taller + denser --- */
+.crowd {
+  height: 78%;
+  min-height: 340px;
+}
+
+.crowd-haze {
+  background: linear-gradient(
+    to bottom,
+    var(--ink) 0%,
+    rgba(20, 18, 31, 0.78) 18%,
+    rgba(20, 18, 31, 0.32) 52%,
+    rgba(20, 18, 31, 0.62) 100%
+  );
+}
+
+@media (max-width: 640px) {
+  .crowd {
+    height: 62%;
+    opacity: 0.95;
+  }
+}
