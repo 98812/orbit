@@ -8,7 +8,13 @@ export default function GoogleSignInButton() {
   async function signIn() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+        queryParams: {
+          // always show the account chooser, even if already signed in
+          prompt: 'select_account',
+        },
+      },
     });
   }
 
