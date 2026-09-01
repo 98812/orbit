@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import ApprovalGate from '@/components/ApprovalGate';
 import { sendPush } from '@/lib/push';
 import Avatar from '@/components/Avatar';
+import ProfileHero from '@/components/ProfileHero';
 
 const FIELDS = [
   ['full_name', 'Name', 'What everyone calls you'],
@@ -164,6 +165,7 @@ function ProfileInner() {
 
   return (
     <div className="page">
+      <ProfileHero profile={profile} />
       <p className="eyebrow">your corner of the group</p>
       <h1>Your profile</h1>
 
