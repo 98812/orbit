@@ -2693,3 +2693,88 @@ body {
   color: var(--cloud);
   border-color: var(--cloud-dim);
 }
+
+/* --- hide menu: force its own styling over anything earlier --- */
+.modal-backdrop:has(.hide-modal) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  z-index: 900 !important;
+}
+
+.hide-modal {
+  position: relative !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: #1D1A2E !important;
+  border: 1px solid rgba(245, 243, 255, 0.14) !important;
+  border-radius: 20px !important;
+  padding: 26px 22px 22px !important;
+  width: 100% !important;
+  max-width: 380px !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+  color: #F5F3FF !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55) !important;
+  transform: none !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+}
+
+.hide-modal h2 {
+  color: #F5F3FF !important;
+  font-size: 19px !important;
+  margin: 0 0 6px !important;
+}
+
+.hide-modal p {
+  color: #B9B3D6 !important;
+}
+
+.hide-modal .modal-close {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  background: #262238 !important;
+  border: 1px solid rgba(245, 243, 255, 0.12) !important;
+  color: #B9B3D6 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  z-index: 2 !important;
+}
+
+.hide-modal .hide-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding: 12px 14px !important;
+  margin-bottom: 8px !important;
+  background: #262238 !important;
+  border: 1px solid rgba(245, 243, 255, 0.1) !important;
+  border-radius: 12px !important;
+  color: #F5F3FF !important;
+  font-size: 15px !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.hide-modal .hide-row.on {
+  border-color: rgba(255, 107, 107, 0.5) !important;
+  background: rgba(255, 107, 107, 0.12) !important;
+}
+
+/* the hero photo rule must not leak into this modal */
+.hide-modal .phero {
+  display: none !important;
+}
