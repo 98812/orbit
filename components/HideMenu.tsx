@@ -15,65 +15,89 @@ export default function HideMenu({
   const [people, setPeople] = useState<any[]>([]);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
+    let cancelled = false;
 
-      const [{ data: profs }, { data: hides }] = await Promise.all([
-        supabase
+    async function load() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { data: profs, error: pErr } = await supabase
           .from('profiles')
-          .select('id, full_name, avatar_url')
-          .eq('approved', true)
-          .order('full_name'),
-        supabase
+          .select('id, full_name, avatar_url, approved')
+          .order('full_name');
+
+        if (pErr) throw new Error('profiles: ' + pErr.message);
+
+        const { data: hides, error: hErr } = await supabase
           .from('content_hides')
           .select('hidden_from')
           .eq('content_type', contentType)
-          .eq('content_id', contentId),
-      ]);
+          .eq('content_id', contentId);
 
-      setPeople((profs || []).filter((p: any) => p.id !== user?.id));
-      setHidden(new Set((hides || []).map((h: any) => h.hidden_from)));
-      setLoading(false);
+        if (hErr) throw new Error('hides: ' + hErr.message);
+
+        if (cancelled) return;
+
+        const others = (profs || [])
+          .filter((p: any) => p.approved !== false)
+          .filter((p: any) => p.id !== user?.id);
+
+        setPeople(others);
+        setHidden(new Set((hides || []).map((h: any) => h.hidden_from)));
+        setLoading(false);
+      } catch (e: any) {
+        console.error('HideMenu load failed:', e);
+        if (!cancelled) {
+          setErr(e?.message || 'Something went wrong.');
+          setLoading(false);
+        }
+      }
     }
+
     load();
+    return () => {
+      cancelled = true;
+    };
   }, [contentId, contentType]);
 
   async function toggle(personId: string) {
     setBusy(personId);
+    setErr(null);
     const isHidden = hidden.has(personId);
 
-    if (isHidden) {
-      const { error } = await supabase
-        .from('content_hides')
-        .delete()
-        .eq('content_type', contentType)
-        .eq('content_id', contentId)
-        .eq('hidden_from', personId);
-      if (!error) {
+    try {
+      if (isHidden) {
+        const { error } = await supabase
+          .from('content_hides')
+          .delete()
+          .eq('content_type', contentType)
+          .eq('content_id', contentId)
+          .eq('hidden_from', personId);
+        if (error) throw error;
         setHidden((prev) => {
           const next = new Set(prev);
           next.delete(personId);
           return next;
         });
       } else {
-        console.error('Unhide failed:', error);
-      }
-    } else {
-      const { error } = await supabase.from('content_hides').insert({
-        content_type: contentType,
-        content_id: contentId,
-        hidden_from: personId,
-      });
-      if (!error) {
+        const { error } = await supabase.from('content_hides').insert({
+          content_type: contentType,
+          content_id: contentId,
+          hidden_from: personId,
+        });
+        if (error) throw error;
         setHidden((prev) => new Set(prev).add(personId));
-      } else {
-        console.error('Hide failed:', error);
       }
+    } catch (e: any) {
+      console.error('Toggle failed:', e);
+      setErr(e?.message || 'Could not change that.');
     }
+
     setBusy(null);
   }
 
@@ -88,6 +112,10 @@ export default function HideMenu({
         <p className="muted" style={{ fontSize: 13, marginTop: 0, marginBottom: 18 }}>
           Anyone toggled on won&apos;t see this.
         </p>
+
+        {err && (
+          <p style={{ color: '#FF6B6B', fontSize: 13, marginBottom: 14 }}>{err}</p>
+        )}
 
         {loading && <p className="muted">Loading…</p>}
 
@@ -109,8 +137,10 @@ export default function HideMenu({
             );
           })}
 
-        {!loading && people.length === 0 && (
-          <p className="muted" style={{ fontSize: 14 }}>No other members yet.</p>
+        {!loading && !err && people.length === 0 && (
+          <p className="muted" style={{ fontSize: 14 }}>
+            No other members found.
+          </p>
         )}
       </div>
     </div>
