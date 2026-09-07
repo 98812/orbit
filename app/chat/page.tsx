@@ -6,6 +6,8 @@ import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import { sendPush } from '@/lib/push';
 import { useIsAdmin } from '@/lib/useIsAdmin';
+import HideMenu from '@/components/HideMenu';
+import EyeOffIcon from '@/components/EyeOffIcon';
 import { useLang } from '@/components/LanguageProvider';
 
 function formatTime(ts: string) {
@@ -31,6 +33,7 @@ function ChatInner() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef(createClient());
   const isAdmin = useIsAdmin();
+  const [hideTarget, setHideTarget] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = supabaseRef.current;
@@ -59,7 +62,14 @@ function ChatInner() {
         console.error('Failed to load messages:', error);
         return;
       }
-      setMessages(data || []);
+      const { data: hides } = await supabase
+        .from('content_hides')
+        .select('content_id')
+        .eq('content_type', 'message')
+        .eq('hidden_from', user?.id || '');
+      const hiddenIds = new Set((hides || []).map((h: any) => h.content_id));
+
+      setMessages((data || []).filter((m: any) => !hiddenIds.has(m.id)));
 
       channel = supabase
         .channel('chat-' + Math.random().toString(36).slice(2))
@@ -133,6 +143,10 @@ function ChatInner() {
 
   return (
     <div className="chat-wrap">
+      {hideTarget && (
+        <HideMenu contentType="message" contentId={hideTarget} onClose={() => setHideTarget(null)} />
+      )}
+
       <h1 style={{ marginBottom: 16 }}>{t('chat.title')}</h1>
 
       <div className="chat-scroll">
@@ -181,6 +195,11 @@ function ChatInner() {
                   }}
                 >
                   <span>{formatTime(m.created_at)}</span>
+                  {isAdmin && (
+                    <button className="hide-btn" onClick={() => setHideTarget(m.id)} aria-label="Hide from someone">
+                      <EyeOffIcon />
+                    </button>
+                  )}
                   {isAdmin && (
                     <button className="del-btn" onClick={() => removeMessage(m.id)} aria-label="Delete message">
                       Delete

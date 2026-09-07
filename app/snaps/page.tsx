@@ -9,6 +9,8 @@ import CameraCapture from '@/components/CameraCapture';
 import CaptionPrompt from '@/components/CaptionPrompt';
 import { sendPush } from '@/lib/push';
 import { useIsAdmin } from '@/lib/useIsAdmin';
+import HideMenu from '@/components/HideMenu';
+import EyeOffIcon from '@/components/EyeOffIcon';
 import { useLang } from '@/components/LanguageProvider';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
@@ -37,6 +39,7 @@ function SnapCard({
   isAdmin,
   onDelete,
   onDeleteComment,
+  onHide,
 }: {
   snap: any;
   userId: string | null;
@@ -48,6 +51,7 @@ function SnapCard({
   isAdmin: boolean;
   onDelete: (id: string) => void;
   onDeleteComment: (snapId: string, commentId: string) => void;
+  onHide: (id: string) => void;
 }) {
   const { t } = useLang();
   const [showComments, setShowComments] = useState(false);
@@ -104,6 +108,11 @@ function SnapCard({
             <span className="mono muted" style={{ fontSize: 11 }}>
               {timeAgo(snap.created_at)}
             </span>
+            {isAdmin && (
+              <button className="hide-btn" onClick={() => onHide(snap.id)} aria-label="Hide from someone">
+                <EyeOffIcon />
+              </button>
+            )}
             {isAdmin && (
               <button className="del-btn" onClick={() => onDelete(snap.id)} aria-label="Delete snap">
                 Delete
@@ -310,6 +319,7 @@ function SnapsInner() {
   const [loading, setLoading] = useState(true);
   const [viewer, setViewer] = useState<any>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [hideTarget, setHideTarget] = useState<string | null>(null);
   const [pending, setPending] = useState<{ file: File; kind: 'image' | 'video' } | null>(null);
   const supabase = createClient();
   const isAdmin = useIsAdmin();
@@ -340,7 +350,14 @@ function SnapsInner() {
         console.error('Failed to load snaps:', error);
         return;
       }
-      setSnaps(data || []);
+      const { data: hides } = await supabase
+        .from('content_hides')
+        .select('content_id')
+        .eq('content_type', 'snap')
+        .eq('hidden_from', user?.id || '');
+      const hiddenIds = new Set((hides || []).map((h: any) => h.content_id));
+
+      setSnaps((data || []).filter((s: any) => !hiddenIds.has(s.id)));
     }
     init();
   }, []);
@@ -522,6 +539,10 @@ function SnapsInner() {
         </div>
       )}
 
+      {hideTarget && (
+        <HideMenu contentType="snap" contentId={hideTarget} onClose={() => setHideTarget(null)} />
+      )}
+
       {cameraOpen && (
         <CameraCapture
           onClose={() => setCameraOpen(false)}
@@ -568,6 +589,7 @@ function SnapsInner() {
           isAdmin={isAdmin}
           onDelete={removeSnap}
           onDeleteComment={removeComment}
+          onHide={setHideTarget}
         />
       ))}
     </div>

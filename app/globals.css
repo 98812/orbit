@@ -2617,3 +2617,79 @@ body {
     padding: 6px 8px;
   }
 }
+
+/* --- hide-from menu --- */
+.hide-modal {
+  max-width: 380px;
+}
+
+.hide-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: var(--ink-3);
+  border: 1px solid rgba(245, 243, 255, 0.1);
+  border-radius: 12px;
+  color: var(--cloud);
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.hide-row:hover {
+  border-color: rgba(245, 243, 255, 0.24);
+}
+
+.hide-row.on {
+  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.hide-name {
+  font-weight: 600;
+}
+
+.hide-state {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cloud-dim);
+}
+
+.hide-row.on .hide-state {
+  color: #FF6B6B;
+}
+
+.hide-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(185, 179, 214, 0.3);
+  border-radius: 50%;
+  color: var(--cloud-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.hide-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.hide-btn:hover {
+  opacity: 1;
+  color: var(--cloud);
+  border-color: var(--cloud-dim);
+}
