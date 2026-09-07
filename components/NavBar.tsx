@@ -6,6 +6,8 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Avatar from './Avatar';
 import { useNotifications } from './NotificationProvider';
+import { useLang } from './LanguageProvider';
+import LangToggle from './LangToggle';
 
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -81,6 +83,7 @@ const LINKS: NavLink[] = [
 
 export default function NavBar() {
   const { counts, clear, enableBrowserNotifs, permission } = useNotifications();
+  const { t } = useLang();
   const pathname = usePathname();
   const [me, setMe] = useState<{ avatar_url?: string; full_name?: string } | null>(null);
 
@@ -135,13 +138,14 @@ export default function NavBar() {
                 ICONS[l.icon]
               )}
             </span>
-            <span className="nav-text">{l.label}</span>
+            <span className="nav-text">{t('nav.' + l.icon)}</span>
             {l.badge && <Badge count={counts[l.badge]} />}
           </Link>
         ))}
       </div>
 
       <div className="nav-right">
+        <LangToggle />
         {permission !== 'granted' && (
           <button
             onClick={enableBrowserNotifs}
@@ -159,7 +163,7 @@ export default function NavBar() {
           title="Admin"
         >
           <span className="nav-icon">{ICONS.admin}</span>
-          <span className="nav-text">Admin</span>
+          <span className="nav-text">{t('nav.admin')}</span>
         </Link>
       </div>
     </nav>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import LanguageProvider from '@/components/LanguageProvider';
 import NotificationProvider from '@/components/NotificationProvider';
 import NavBar from '@/components/NavBar';
 import InstallPrompt from '@/components/InstallPrompt';
@@ -48,7 +49,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <NotificationProvider>
+        <LanguageProvider>
+          <NotificationProvider>
           <PullToRefresh />
           <NavBar />
           <SwipeNav>{children}</SwipeNav>
@@ -57,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PresenceTracker />
           <ScrollDepth />
         </NotificationProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
