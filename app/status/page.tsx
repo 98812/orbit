@@ -6,6 +6,7 @@ import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import { sendPush } from '@/lib/push';
 import { useIsAdmin } from '@/lib/useIsAdmin';
+import { useLang } from '@/components/LanguageProvider';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
@@ -121,7 +122,7 @@ function StatusCard({
 
       <div className="status-actions">
         <button className="link-btn" onClick={() => setShowPicker((s) => !s)}>
-          😀 React
+          {'😀 ' + t('common.react')}
         </button>
         <button className="link-btn" onClick={() => setShowComments((s) => !s)}>
           💬 {comments.length > 0 ? `${comments.length} ${comments.length === 1 ? 'reply' : 'replies'}` : 'Reply'}
@@ -172,12 +173,12 @@ function StatusCard({
               className="input"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Write a reply…"
+              placeholder={t('common.reply') + '…'}
               style={{ fontSize: 14, padding: '9px 12px' }}
               autoComplete="off"
             />
             <button type="submit" className="btn btn-pink btn-sm" disabled={sending}>
-              {sending ? '…' : 'Send'}
+              {sending ? '…' : t('common.send')}
             </button>
           </form>
         </div>
@@ -187,6 +188,7 @@ function StatusCard({
 }
 
 function StatusInner() {
+  const { t } = useLang();
   const [statuses, setStatuses] = useState<any[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [avatars, setAvatars] = useState<Record<string, string>>({});
@@ -345,8 +347,8 @@ function StatusInner() {
 
   return (
     <div className="page">
-      <p className="eyebrow">say it out loud</p>
-      <h1>What&apos;s going on?</h1>
+      <p className="eyebrow">{t('status.eyebrow')}</p>
+      <h1>{t('status.title')}</h1>
 
       <form onSubmit={post} className="status-composer">
         <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
@@ -355,14 +357,14 @@ function StatusInner() {
             className="input status-input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="What's going on?"
+            placeholder={t('status.placeholder')}
             rows={2}
             maxLength={500}
           />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
           <button type="submit" className="btn btn-primary btn-sm" disabled={posting || !draft.trim()}>
-            {posting ? 'Posting…' : 'Post ↗'}
+            {posting ? t('common.posting') : t('common.post') + ' ↗'}
           </button>
         </div>
       </form>
@@ -370,14 +372,14 @@ function StatusInner() {
       {loading && (
         <div className="empty">
           <div className="empty-icon">💭</div>
-          <p>Loading…</p>
+          <p>{t('common.loading')}</p>
         </div>
       )}
 
       {!loading && statuses.length === 0 && (
         <div className="empty">
           <div className="empty-icon">✍️</div>
-          <p>Nothing yet — say something first.</p>
+          <p>{t('status.empty')}</p>
         </div>
       )}
 

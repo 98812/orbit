@@ -7,6 +7,7 @@ import ApprovalGate from '@/components/ApprovalGate';
 import { sendPush } from '@/lib/push';
 import Avatar from '@/components/Avatar';
 import ProfileHero from '@/components/ProfileHero';
+import { useLang } from '@/components/LanguageProvider';
 
 const FIELDS = [
   ['full_name', 'Name', 'What everyone calls you'],
@@ -20,6 +21,7 @@ const FIELDS = [
 ] as const;
 
 function ProfileInner() {
+  const { t } = useLang();
   const [profile, setProfile] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -157,7 +159,7 @@ function ProfileInner() {
       <div className="page">
         <div className="empty">
           <div className="empty-icon">👤</div>
-          <p>Loading your profile…</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -166,8 +168,8 @@ function ProfileInner() {
   return (
     <div className="page">
       <ProfileHero profile={profile} />
-      <p className="eyebrow">your corner of the group</p>
-      <h1>Your profile</h1>
+      <p className="eyebrow">{t('profile.eyebrow')}</p>
+      <h1>{t('profile.title')}</h1>
 
       <div className="avatar-editor">
         <div className="avatar-editor-pic">
@@ -181,7 +183,7 @@ function ProfileInner() {
             onClick={() => fileRef.current?.click()}
             disabled={uploadingPhoto}
           >
-            {uploadingPhoto ? 'Uploading…' : profile.avatar_url ? 'Change photo' : 'Add photo'}
+            {uploadingPhoto ? t('common.uploading') : profile.avatar_url ? t('profile.changePhoto') : t('profile.addPhoto')}
           </button>
           <p className="muted" style={{ fontSize: 12.5, marginTop: 8, marginBottom: 0 }}>
             Pick one from your gallery — everyone in the group will see it.
@@ -213,11 +215,11 @@ function ProfileInner() {
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 24 }}>
           <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Saving…' : 'Save changes'}
+            {saving ? t('common.saving') : t('common.save')}
           </button>
           {saved && (
             <span className="pop" style={{ color: 'var(--lime)', fontWeight: 600, fontSize: 14 }}>
-              ✓ Saved
+              {'✓ ' + t('common.saved')}
             </span>
           )}
         </div>
@@ -225,7 +227,7 @@ function ProfileInner() {
 
       <div className="signout-row">
         <div>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>Signed in</div>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>{t('profile.signedIn')}</div>
           {profile.email && (
             <div className="mono muted" style={{ fontSize: 12, marginTop: 3 }}>
               {profile.email}
@@ -233,7 +235,7 @@ function ProfileInner() {
           )}
         </div>
         <button type="button" className="btn btn-danger btn-sm" onClick={signOut} disabled={signingOut}>
-          {signingOut ? 'Signing out…' : 'Sign out'}
+          {signingOut ? '…' : t('profile.signOut')}
         </button>
       </div>
     </div>

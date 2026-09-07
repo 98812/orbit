@@ -6,6 +6,7 @@ import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import { sendPush } from '@/lib/push';
 import { useIsAdmin } from '@/lib/useIsAdmin';
+import { useLang } from '@/components/LanguageProvider';
 
 function formatTime(ts: string) {
   if (!ts) return '';
@@ -21,6 +22,7 @@ function formatTime(ts: string) {
 }
 
 function ChatInner() {
+  const { t } = useLang();
   const [messages, setMessages] = useState<any[]>([]);
   const [people, setPeople] = useState<Record<string, any>>({});
   const [text, setText] = useState('');
@@ -131,20 +133,20 @@ function ChatInner() {
 
   return (
     <div className="chat-wrap">
-      <h1 style={{ marginBottom: 16 }}>The chat</h1>
+      <h1 style={{ marginBottom: 16 }}>{t('chat.title')}</h1>
 
       <div className="chat-scroll">
         {loading && (
           <div className="empty">
             <div className="empty-icon">💬</div>
-            <p>Loading messages…</p>
+            <p>{t('common.loading')}</p>
           </div>
         )}
 
         {!loading && messages.length === 0 && (
           <div className="empty">
             <div className="empty-icon">👋</div>
-            <p>No messages yet — say hi.</p>
+            <p>{t('chat.empty')}</p>
           </div>
         )}
 
@@ -164,7 +166,7 @@ function ChatInner() {
               <div>
                 {showName && (
                   <div className="msg-name" style={{ textAlign: mine ? 'right' : 'left' }}>
-                    {mine ? 'You' : person.full_name || 'friend'}
+                    {mine ? t('common.you') : person.full_name || t('common.friend')}
                   </div>
                 )}
                 <div className="bubble">{m.content}</div>
@@ -199,11 +201,11 @@ function ChatInner() {
           className="input"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Say something…"
+          placeholder={t('chat.placeholder')}
           autoComplete="off"
         />
         <button type="submit" className="btn btn-primary">
-          Send
+          {t('common.send')}
         </button>
       </form>
     </div>

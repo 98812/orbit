@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
+import { useLang } from '@/components/LanguageProvider';
 
 function timeAgo(ts: string) {
   if (!ts) return '';
@@ -20,6 +21,7 @@ function timeAgo(ts: string) {
 }
 
 function InboxInner() {
+  const { t } = useLang();
   const [threads, setThreads] = useState<any[]>([]);
   const [everyone, setEveryone] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ function InboxInner() {
       <div className="page">
         <div className="empty">
           <div className="empty-icon">✉️</div>
-          <p>Loading messages…</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -96,11 +98,11 @@ function InboxInner() {
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <div>
-          <p className="eyebrow">just between you two</p>
-          <h1>Messages</h1>
+          <p className="eyebrow">{t('messages.eyebrow')}</p>
+          <h1>{t('messages.title')}</h1>
         </div>
         <button className="btn btn-primary btn-sm" onClick={() => setShowNew((s) => !s)}>
-          {showNew ? 'Close' : '+ New'}
+          {showNew ? t('common.close') : '+ ' + t('messages.new')}
         </button>
       </div>
 
@@ -108,7 +110,7 @@ function InboxInner() {
         <div className="card" style={{ marginBottom: 20 }}>
           <input
             className="input"
-            placeholder="Search people…"
+            placeholder={t('messages.search')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ marginBottom: 12 }}
@@ -129,9 +131,9 @@ function InboxInner() {
       {threads.length === 0 && !showNew && (
         <div className="empty">
           <div className="empty-icon">💌</div>
-          <p>No conversations yet.</p>
+          <p>{t('messages.empty')}</p>
           <button className="btn btn-primary btn-sm" style={{ marginTop: 14 }} onClick={() => setShowNew(true)}>
-            Start one
+            {t('messages.start')}
           </button>
         </div>
       )}

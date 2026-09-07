@@ -5,9 +5,11 @@ import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import ProfileHero from '@/components/ProfileHero';
+import { useLang } from '@/components/LanguageProvider';
 import Link from 'next/link';
 
 function MembersInner() {
+  const { t } = useLang();
   const [people, setPeople] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<any>(null);
@@ -36,7 +38,7 @@ function MembersInner() {
       <div className="page">
         <div className="empty">
           <div className="empty-icon">👥</div>
-          <p>Loading the crew…</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -44,8 +46,8 @@ function MembersInner() {
 
   return (
     <div className="page">
-      <p className="eyebrow">the crew</p>
-      <h1>Members</h1>
+      <p className="eyebrow">{t('members.eyebrow')}</p>
+      <h1>{t('members.title')}</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 26 }}>
         {people.length} {people.length === 1 ? 'person' : 'people'} in the group
       </p>
@@ -89,7 +91,7 @@ function MembersInner() {
               ))}
 
             <Link href={`/messages/${open.id}`} className="btn btn-primary" style={{ marginBottom: 18 }}>
-              ✉️ Message
+              {'✉️ ' + t('members.message')}
             </Link>
 
             {!open.bio && !open.goal && !open.mission && !open.qualification && (

@@ -9,6 +9,7 @@ import CameraCapture from '@/components/CameraCapture';
 import CaptionPrompt from '@/components/CaptionPrompt';
 import { sendPush } from '@/lib/push';
 import { useIsAdmin } from '@/lib/useIsAdmin';
+import { useLang } from '@/components/LanguageProvider';
 
 const EMOJIS = ['🔥', '😂', '😍', '👀', '💀', '🫡', '🙏', '😟', '🖕', '🤟', '🤙'];
 
@@ -299,6 +300,7 @@ function Lightbox({
 }
 
 function SnapsInner() {
+  const { t } = useLang();
   const [snaps, setSnaps] = useState<any[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [avatars, setAvatars] = useState<Record<string, string>>({});
@@ -488,7 +490,7 @@ function SnapsInner() {
 
   return (
     <div className="page">
-      <h1>Snaps</h1>
+      <h1>{t('snaps.title')}</h1>
 
       <div className="upload-row">
         <button
@@ -501,21 +503,21 @@ function SnapsInner() {
           <span className="capture-icon" aria-hidden="true">
             {uploading ? '⏳' : '📷'}
           </span>
-          <span className="capture-label">{uploading ? 'Uploading…' : 'Take a Snap'}</span>
+          <span className="capture-label">{uploading ? t('common.uploading') : t('snaps.take')}</span>
         </button>
       </div>
 
       {loading && !uploading && (
         <div className="empty">
           <div className="empty-icon">📸</div>
-          <p>Loading Snaps…</p>
+          <p>{t('common.loading')}</p>
         </div>
       )}
 
       {!loading && !uploading && snaps.length === 0 && (
         <div className="empty">
           <div className="empty-icon">📭</div>
-          <p>No Snaps yet — post the first one.</p>
+          <p>{t('snaps.empty')}</p>
         </div>
       )}
 

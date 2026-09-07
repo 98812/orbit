@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Avatar from '@/components/Avatar';
+import { useLang } from '@/components/LanguageProvider';
 
 const ADMIN_EMAIL = 'aayushranamukti@gmail.com';
 
@@ -31,6 +32,7 @@ function staleness(ts: string | null) {
 }
 
 export default function AdminPage() {
+  const { t } = useLang();
   const [people, setPeople] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [, setTick] = useState(0);
@@ -90,7 +92,7 @@ export default function AdminPage() {
       <div className="page">
         <div className="empty">
           <div className="empty-icon">🛠️</div>
-          <p>Loading…</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -121,17 +123,17 @@ export default function AdminPage() {
 
   return (
     <div className="page">
-      <p className="eyebrow">who gets in</p>
-      <h1>Manage members</h1>
+      <p className="eyebrow">{t('admin.eyebrow')}</p>
+      <h1>{t('admin.title')}</h1>
 
       <h2 style={{ marginTop: 32, marginBottom: 14 }}>
-        Waiting for approval{' '}
+        {t('admin.pending')}{' '}
         <span style={{ color: pending.length ? 'var(--pink)' : 'var(--cloud-dim)' }}>
           ({pending.length})
         </span>
       </h2>
 
-      {pending.length === 0 && <p className="muted">Nobody waiting right now.</p>}
+      {pending.length === 0 && <p className="muted">{t('admin.nobody')}</p>}
 
       {pending.map((p) => (
         <div key={p.id} className="card pop admin-row">
@@ -143,13 +145,13 @@ export default function AdminPage() {
             </div>
           </div>
           <button onClick={() => setApproval(p.id, true)} className="btn btn-primary btn-sm">
-            Approve
+            {t('admin.approve')}
           </button>
         </div>
       ))}
 
       <h2 style={{ marginTop: 36, marginBottom: 6 }}>
-        Approved members <span className="muted">({approved.length})</span>
+        {t('admin.approved')} <span className="muted">({approved.length})</span>
       </h2>
       <p className="muted" style={{ fontSize: 13, marginTop: 0, marginBottom: 14 }}>
         Sorted by least recently active.
@@ -181,7 +183,7 @@ export default function AdminPage() {
           </div>
           {p.email !== ADMIN_EMAIL && (
             <button onClick={() => setApproval(p.id, false)} className="btn btn-sm btn-danger">
-              Remove
+              {t('admin.remove')}
             </button>
           )}
         </div>
