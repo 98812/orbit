@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
+import { createPortal } from 'react-dom';
 
 export default function HideMenu({
   contentType,
@@ -17,7 +18,10 @@ export default function HideMenu({
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const supabase = createClient();
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,7 +105,9 @@ export default function HideMenu({
     setBusy(null);
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal hide-modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Close">
@@ -143,6 +149,7 @@ export default function HideMenu({
           </p>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
