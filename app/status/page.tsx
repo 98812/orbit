@@ -44,6 +44,7 @@ function StatusCard({
   onDelete: (id: string) => void;
   onDeleteComment: (statusId: string, commentId: string) => void;
 }) {
+  const { t } = useLang();
   const [showComments, setShowComments] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [draft, setDraft] = useState('');

@@ -49,6 +49,7 @@ function SnapCard({
   onDelete: (id: string) => void;
   onDeleteComment: (snapId: string, commentId: string) => void;
 }) {
+  const { t } = useLang();
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
