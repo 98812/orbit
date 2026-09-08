@@ -661,7 +661,7 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
   animation: riseIn 0.4s ease both;
 }
@@ -854,7 +854,7 @@ a {
 .lightbox-figure figcaption {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
   justify-content: center;
   color: var(--cloud);
@@ -946,7 +946,7 @@ a {
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding: 14px 16px;
   background: var(--ink-2);
   border: 1px solid rgba(198, 255, 61, 0.28);
@@ -1169,7 +1169,7 @@ a {
 
 .hero-cta {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -1222,7 +1222,7 @@ a {
   margin-top: 40px;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   letter-spacing: 0.1em;
@@ -1255,7 +1255,7 @@ a {
 .thread-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding: 12px 14px;
   text-decoration: none;
   color: var(--cloud);
@@ -1697,7 +1697,7 @@ a {
   border-top: 1px solid rgba(245, 243, 255, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .caption-input {
@@ -1842,7 +1842,7 @@ a {
 .admin-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .admin-tag {
@@ -2403,7 +2403,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .switch-account {
@@ -2627,7 +2627,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   padding: 12px 14px;
   margin-bottom: 8px;
@@ -3179,11 +3179,11 @@ backdrop-filter: none;
 
 @media (max-width: 720px) {
 .nav-links {
-gap: 12px;
+gap: 14px;
 }
 .nav-icon {
-width: 24px;
-height: 24px;
+width: 27px;
+height: 27px;
 }
 .nav-link {
 padding: 8px 8px;
