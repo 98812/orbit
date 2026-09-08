@@ -13,12 +13,12 @@ import UpdateChecker from '@/components/UpdateChecker';
 export const metadata: Metadata = {
   title: 'Gen-Z — for revolution',
   description: 'A private space for your friend group: profiles, group chat, and Snaps with reactions.',
-  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Gen-Z',
   },
+  manifest: '/manifest.json',
   icons: {
     icon: [
       { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
