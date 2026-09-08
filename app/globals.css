@@ -3122,3 +3122,26 @@ box-shadow: 0 0 60px 18px rgba(253,253,245,0.8), 0 0 130px 45px rgba(253,253,245
 filter: brightness(1.3);
 }
 }
+
+html, body {
+overflow-x: hidden;
+max-width: 100vw;
+}
+
+.nav {
+min-width: 0;
+}
+
+.nav-logo, .nav-links, .nav-right {
+min-width: 0;
+}
+
+@media (max-width: 480px) {
+.nav-links {
+padding: 3px 4px;
+gap: 1px;
+}
+.nav-icon::before {
+display: none;
+}
+}
