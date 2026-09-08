@@ -1,4 +1,5 @@
 'use client';
+import GenZLogo from './GenZLogo';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -119,7 +120,7 @@ export default function NavBar() {
   return (
     <nav className="nav">
       <Link href="/" className="nav-logo">
-        Gen-Z<span>.</span>
+        <GenZLogo fontSize={22} /><span>.</span>
       </Link>
 
       <div className="nav-links">

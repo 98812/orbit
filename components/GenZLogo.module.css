@@ -1,0 +1,33 @@
+.wrapper {
+  display: inline-flex;
+  line-height: 1;
+}
+
+.letter {
+  display: inline-block;
+  font-family: 'Rammetto One', sans-serif;
+  color: #e0332e;
+  animation-name: letterBounce, letterHue;
+  animation-duration: 1s, 3s;
+  animation-timing-function: ease-in-out, linear;
+  animation-iteration-count: infinite, infinite;
+}
+
+@keyframes letterBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-18%);
+  }
+}
+
+@keyframes letterHue {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
