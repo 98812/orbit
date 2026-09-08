@@ -2836,15 +2836,18 @@ body {
   animation: navRingGlow 1.8s ease-in-out infinite;
 }
 
-   .nav {
-     position: relative;
-   }
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
 
-   .nav-links {
-     position: absolute;
-     left: 50%;
-     transform: translateX(-50%);
-   }
+.nav-links {
+  justify-self: center;
+}
 
 .signin-page {
   position: relative;
