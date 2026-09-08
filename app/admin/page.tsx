@@ -104,7 +104,7 @@ export default function AdminPage() {
         <div className="empty">
           <div className="empty-icon">⛔</div>
           <h2 style={{ marginBottom: 8 }}>Not authorised</h2>
-          <p className="muted">Only the group admin can see this page.</p>
+          <p className="muted">Only the developer can see this page.</p>
         </div>
       </div>
     );
