@@ -10,6 +10,7 @@ const STRINGS: Record<string, { en: string; ja: string }> = {
   'nav.chat': { en: 'Chat', ja: 'チャット' },
   'nav.snaps': { en: 'Snaps', ja: 'スナップ' },
   'nav.messages': { en: 'Messages', ja: 'メッセージ' },
+ 'nav.mail': { en: 'Messages', ja: 'メッセージ' },
   'nav.members': { en: 'Members', ja: 'メンバー' },
   'nav.profile': { en: 'Profile', ja: 'プロフィール' },
   'nav.admin': { en: 'Admin', ja: '管理' },

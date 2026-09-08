@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase';
 import ApprovalGate from '@/components/ApprovalGate';
 import Avatar from '@/components/Avatar';
 import { sendPush } from '@/lib/push';
+import { useNotifications } from '@/components/NotificationProvider';
 
 function formatTime(ts: string) {
   if (!ts) return '';
@@ -31,6 +32,7 @@ function ThreadInner() {
   const [loading, setLoading] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef(createClient());
+  const { clear } = useNotifications();
 
   useEffect(() => {
     const supabase = supabaseRef.current;
@@ -71,6 +73,7 @@ function ThreadInner() {
         .eq('sender_id', otherId)
         .eq('recipient_id', user.id)
         .is('read_at', null);
+      clear('dms');
 
       channel = supabase
         .channel('dm-' + Math.random().toString(36).slice(2))
