@@ -34,7 +34,12 @@ export default function ApprovalGate({ children }: { children: React.ReactNode }
 
   if (status === 'signedout') {
     return (
-      <div className="page">
+      <div className="page signin-page">
+        <div className="signin-bg">
+          <div className="night-moon"></div>
+          <div className="night-stars night-stars-1"></div>
+          <div className="night-stars night-stars-2"></div>
+        </div>
         <div className="empty">
           <div className="empty-icon">🔒</div>
           <h2 style={{ marginBottom: 10 }}>You need to sign in</h2>
